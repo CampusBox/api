@@ -4,8 +4,6 @@ use App\Student;
 use App\StudentTransformer;
 use App\SocialAccount;
 use App\StudentSkill;
-use App\College;
-use App\CollegeTransformer;
 use App\StudentInterest;
 use Firebase\JWT\JWT;
 use League\Fractal\Manager;
@@ -21,14 +19,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		return $response->withStatus(201)
 		->withHeader("Content-Type", "application/json")
 		->write(json_encode($error, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-	}
-	else if(!isset($body['roll']) || !isset($body['college']) ){
-		$error['message'] = 'Collge or roll missing !' ;
-		
-		return $response->withStatus(201)
-		->withHeader("Content-Type", "application/json")
-		->write(json_encode($error, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-
 	}
 	if($body['type'] == 'facebook'){
 		$fb = new \Facebook\Facebook([
@@ -92,8 +82,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 				$social['social_id'] = $facebookData['id'];
 				$social['type'] = "facebook";
 				$social['token'] = $body['token'];
-				$social['college_id'] = $body['college'];
-				$social['roll_number'] = $body['roll'];
 				$social['name'] = isset($facebookData['name'])?$facebookData['name']:" ";
 				$social['email'] = isset($facebookData['email'])? $facebookData['email']:" ";
 				$social['gender'] = isset($facebookData['gender'])?$facebookData['gender']:" ";
@@ -103,19 +91,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 				$social['picture'] = isset($facebookData['picture']['url'])?$facebookData['picture']['url']:" ";
 				$social['cover'] = isset($facebookData['cover']['url'])?$facebookData['picture']['url']:" ";
 				
-				if($social['college_id'] == 0){
-					$college['name'] = $body['College_Name'];
-					$newCollege = new College($college);
-					$this->spot->mapper("App\College")->save($newCollege);
-
-				    $fractal = new Manager();
-				    $fractal->setSerializer(new DataArraySerializer);
-				    $resource = new Item($newCollege, new CollegeTransformer);
-    				$data = $fractal->createData($resource)->toArray();
-    				$social['college_id'] = $data['data']['id'];
-
-				}
-
 				$socialAccount = new SocialAccount($social);
 				$this->spot->mapper("App\SocialAccount")->save($socialAccount);
 
@@ -129,8 +104,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 				"iat" => $now->getTimeStamp(),
 				"exp" => $future->getTimeStamp(),
 				"jti" => $jti,
-				"username" => $student[0]->username,
-				"college_id" => $student[0]->college_id,
+				"username" => $student[0]->username
 				];
 				$secret = getenv("JWT_SECRET");
 				$token = JWT::encode($payload, $secret, "HS256");
@@ -167,34 +141,11 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		$newUser['about'] = isset($facebookData['about']) ?$facebookData['about']: "Apparently, this user prefers to keep an air of mystery about them";
 		$newUser['image'] = isset($facebookData['picture']['url'])?$facebookData['picture']['url']:" ";
 
-		$newUser['college_id'] = $body['college'];
-		$newUser['roll_number'] = $body['roll']	;
-
-				if($newUser['college_id'] == 0){
-					$college['name'] = $body['College_Name'];
-					$newCollege = new College($college);
-					$this->spot->mapper("App\College")->save($newCollege);
-
-				    $fractal = new Manager();
-				    $fractal->setSerializer(new DataArraySerializer);
-				    $resource = new Item($newCollege, new CollegeTransformer);
-    				$data = $fractal->createData($resource)->toArray();
-    				$newUser['college_id'] = $data['data']['id'];
-				}
-
 		$newUserAccount = new Student($newUser);
 		$this->spot->mapper("App\Student")->save($newUserAccount);
 
 
 
-					// add same data to social accounts table
-		if($body['college'] == 0){
-			$social['college_id'] = $data['data']['id'];
-		} else{
-			$social['college_id'] = $body['college'];
-		}
-
-		$social['roll_number'] = $body['roll']	;
 		$social['username'] = $newUser['username'];
 		$social['social_id'] = $facebookData['id'];
 		$social['type'] = "facebook";
@@ -267,8 +218,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 
 		if (count($student) > 0) {
 
-			$social['college_id'] = $body['college'];
-			$social['roll_number'] = $body['roll']	;
 			$social['username'] = $student[0]->username;
 			$social['social_id'] = $googleData->id;
 			$social['type'] = "google";
@@ -282,20 +231,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			$social['picture'] = isset($googleData->picture)?$googleData->picture:" ";
 			$social['cover'] = isset($googleData->cover['url'])?$googleData->picture:" ";
 			
-				if($social['college_id'] == 0){
-					$college['name'] = $body['College_Name'];
-					$newCollege = new College($college);
-					$this->spot->mapper("App\College")->save($newCollege);
-
-				    $fractal = new Manager();
-				    $fractal->setSerializer(new DataArraySerializer);
-				    $resource = new Item($newCollege, new CollegeTransformer);
-    				$data = $fractal->createData($resource)->toArray();
-    				$social['college_id'] = $data['data']['id'];
-
-				}
-
-
 			$socialAccount = new SocialAccount($social);
 			$this->spot->mapper("App\SocialAccount")->save($socialAccount);
 
@@ -348,33 +283,12 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			$newUser['about'] = isset($googleData->about) ?$googleData->about: "Apparently, this user prefers to keep an air of mystery about them";
 			$newUser['image'] = isset($googleData->picture)?$googleData->picture:" ";
 
-			$newUser['college_id'] = $body['college'];
-			$newUser['roll_number'] = $body['roll']	;
-			
-				if($newUser['college_id'] == 0){
-					$college['name'] = $body['College_Name'];
-					$newCollege = new College($college);
-					$this->spot->mapper("App\College")->save($newCollege);
-
-				    $fractal = new Manager();
-				    $fractal->setSerializer(new DataArraySerializer);
-				    $resource = new Item($newCollege, new CollegeTransformer);
-    				$data = $fractal->createData($resource)->toArray();
-    				$social['college_id'] = $data['data']['id'];
-    				echo "i entered here";
-
-				}
-
-
-
 			$newUserAccount = new Student($newUser);
 			$this->spot->mapper("App\Student")->save($newUserAccount);
 
 
 
 			// add same data to social accounts table
-			$social['college_id'] = $body['college'];
-			$social['roll_number'] = $body['roll']	;
 			$social['username'] = $newUser['username'];
 			$social['social_id'] = $googleData->id;
 			$social['type'] = "google";
@@ -436,8 +350,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		->where(['email' => $linkedinData->email]);
 		if (count($student) > 0) {
 
-			$social['college_id'] = $body['college'];
-			$social['roll_number'] = $body['roll']	;
 			$social['username'] = $student[0]->username;
 			$social['social_id'] = $linkedinData->id;
 			$social['type'] = "google";
@@ -502,21 +414,15 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			$newUser['about'] = isset($googleData->about) ?$googleData->about: "Apparently, this user prefers to keep an air of mystery about them";
 			$newUser['image'] = isset($googleData->picture)?$googleData->picture:" ";
 
-			$newUser['college_id'] = $body['college'];
-			$newUser['roll_number'] = $body['roll']	;
 			$newUserAccount = new Student($newUser);
 			$this->spot->mapper("App\Student")->save($newUserAccount);
 
 
 
 			// add same data to social accounts table
-			$social['college_id'] = $body['college'];
-			$social['roll_number'] = $body['roll']	;
 			$social['username'] = $newUser['username'];
 			$social['social_id'] = $googleData->id;
 			$social['type'] = "google";
-			$social['college_id'] = $newUser['college_id'];
-			$social['roll_number'] = $newUser['roll_number']	;
 			$social['token'] =$body['access_token'];
 			$social['name'] = isset($googleData->name)?$googleData->name:" ";
 			$social['email'] = isset($googleData->email)? $googleData->email:" ";
@@ -557,9 +463,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 	"iat" => $now->getTimeStamp(),
 	"exp" => $future->getTimeStamp(),
 	"jti" => $jti,
-	"username" => $newUser['username'],
-	"college_id" => $newUser['college_id'],
-
+	"username" => $newUser['username']
 	];
 	$secret = getenv("JWT_SECRET");
 	$token = JWT::encode($payload, $secret, "HS256");
