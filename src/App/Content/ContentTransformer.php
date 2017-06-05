@@ -66,7 +66,7 @@ class ContentTransformer extends Fractal\TransformerAbstract {
                 "at" => $content->timer ?: 0,
                  ],
             "Actions" => [
-                "Appriciate" => [
+                "Appreciate" => [
                     "status" => (bool) $this->params['appreciateValue'] ?: false,
                     "total" => (integer) count($content->Appreciates) ?: 0,
                     ],
