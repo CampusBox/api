@@ -50,7 +50,7 @@ $app->get("/contentSorted", function ($request, $response, $arguments) {
 	        THEN 0 ELSE 8 END AS followScore,
 
 	        CASE WHEN content_appreciates.content_id IS NULL 
-	        THEN 0 ELSE LOG(COUNT(content_appreciates.content_id))  END AS appriciateScore
+	        THEN 0 ELSE LOG(COUNT(content_appreciates.content_id))  END AS appreciateScore
 
 	        FROM contents
 

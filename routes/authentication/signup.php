@@ -17,7 +17,7 @@ use Facebook\Facebook;
 $app->post("/signup", function ($request, $response, $arguments) {
 	$body = $request->getParsedBody();
 	if(count($body['intrests']) > 20){
-		$error['message'] = 'Tooooo many intersts ! we do appriciate it but can not save it ';
+		$error['message'] = 'Tooooo many intersts ! we do appreciate it but can not save it ';
 		return $response->withStatus(201)
 		->withHeader("Content-Type", "application/json")
 		->write(json_encode($error, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));

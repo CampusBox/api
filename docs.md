@@ -284,7 +284,7 @@ send contents which student is interested in sort by latest added and followed b
         "at": "20161004T19:18:07"
       },
       "Actions": {
-        "Appriciate": {
+        "appreciate": {
           "status": true,
           "total": 1
         },
