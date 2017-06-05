@@ -49,7 +49,9 @@ class Content extends \Spot\Entity {
 		'Appreciates' => $mapper->hasMany($entity, 'App\ContentAppreciate', 'content_id'),
 		'Appreciated' => $mapper->hasMany($entity, 'App\ContentAppreciate', 'content_id'),
 		'Bookmarks' => $mapper->hasMany($entity, 'App\ContentBookmarks', 'content_id'),
-		'Bookmarked' => $mapper->hasMany($entity, 'App\ContentBookmarks', 'content_id')
+		'Bookmarked' => $mapper->hasMany($entity, 'App\ContentBookmarks', 'content_id'),
+        'Responses' => $mapper->hasMany($entity, 'App\ContentResponses', 'content_id') 
+
 		];
 	}
 }
