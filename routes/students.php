@@ -218,9 +218,16 @@ return $response->withStatus(200)
 
 $app->post("/addStudentSkills", function ($request, $response, $arguments) {
     $body = $request->getParsedBody();
-
     $skills['skills'] = $body['skills'];
+    $skills_existing = $this->spot->mapper("App\StudentSkill")
+        ->where(['username' => $this->token->decoded->username]);
 
+   // Deleting existing skills 
+    foreach ($skills_existing as $key ) {
+        $this->spot->mapper("App\StudentSkill")->delete($key);
+    }
+
+   // Adding new skills 
     foreach ($skills['skills'] as $key ) {
         
         $newSkills['skill_name'] = $key['name'];
