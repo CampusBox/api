@@ -135,6 +135,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		}
 
 					// first add user to students table
+        $newUser['college_id'] = 0;
 		$newUser['name'] = isset($facebookData['name'])?$facebookData['name']:" ";
 		$newUser['email'] = isset($facebookData['email'])? $facebookData['email']:" ";
 		$newUser['gender'] = isset($facebookData['gender'])?$facebookData['gender']:" ";
@@ -411,6 +412,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			}
 
 			// first add user to students table
+			$newUser['college_id'] = 0;
 			$newUser['name'] = isset($googleData->name)?$googleData->name:" ";
 			$newUser['email'] = isset($googleData->email)? $googleData->email:" ";
 			$newUser['gender'] = isset($googleData->gender)?$googleData->gender:" ";
