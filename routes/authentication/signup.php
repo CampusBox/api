@@ -79,6 +79,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 
 
 				$social['username'] = $student[0]->username;
+				$social['college_id'] = $student[0]->college_id;
 				$social['social_id'] = $facebookData['id'];
 				$social['type'] = "facebook";
 				$social['token'] = $body['token'];
@@ -135,7 +136,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		}
 
 					// first add user to students table
-        $newUser['college_id'] = 0;
+		$newUser['college_id'] = 0;
 		$newUser['name'] = isset($facebookData['name'])?$facebookData['name']:" ";
 		$newUser['email'] = isset($facebookData['email'])? $facebookData['email']:" ";
 		$newUser['gender'] = isset($facebookData['gender'])?$facebookData['gender']:" ";
@@ -149,6 +150,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 
 
 					// add same data to social accounts table
+		$social['college_id'] = 0;
 		$social['roll_number'] = $body['roll']	;
 		$social['username'] = $newUser['username'];
 		$social['social_id'] = $facebookData['id'];
@@ -224,6 +226,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		if (count($student) > 0) {
 
 			$social['username'] = $student[0]->username;
+			$social['college_id'] = $student[0]->college_id;
 			$social['social_id'] = $googleData->id;
 			$social['type'] = "google";
 			$social['token'] = $body['token'];
@@ -251,7 +254,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			"jti" => $jti,
 			"username" => $student[0]->username,
 			"student_id" => $student[0]->student_id,
-
+			"college_id" => $student[0]->college_id
 			];
 			$secret = getenv("JWT_SECRET");
 			$token = JWT::encode($payload, $secret, "HS256");
@@ -281,6 +284,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			}
 
 			// first add user to students table
+			$newUser['college_id'] = 0;
 			$newUser['name'] = isset($googleData->name)?$googleData->name:" ";
 			$newUser['email'] = isset($googleData->email)? $googleData->email:" ";
 			$newUser['gender'] = isset($googleData->gender)?$googleData->gender:" ";
@@ -294,6 +298,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 
 
 			// add same data to social accounts table
+			$social['college_id'] = 0;
 			$social['username'] = $newUser['username'];
 			$social['social_id'] = $googleData->id;
 			$social['type'] = "google";
@@ -412,7 +417,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			}
 
 			// first add user to students table
-			$newUser['college_id'] = 0;
 			$newUser['name'] = isset($googleData->name)?$googleData->name:" ";
 			$newUser['email'] = isset($googleData->email)? $googleData->email:" ";
 			$newUser['gender'] = isset($googleData->gender)?$googleData->gender:" ";
