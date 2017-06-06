@@ -104,7 +104,8 @@ $app->post("/signup", function ($request, $response, $arguments) {
 				"iat" => $now->getTimeStamp(),
 				"exp" => $future->getTimeStamp(),
 				"jti" => $jti,
-				"username" => $student[0]->username
+				"username" => $student[0]->username,
+				"college_id" => $student[0]->college_id,
 				];
 				$secret = getenv("JWT_SECRET");
 				$token = JWT::encode($payload, $secret, "HS256");
@@ -146,6 +147,8 @@ $app->post("/signup", function ($request, $response, $arguments) {
 
 
 
+					// add same data to social accounts table
+		$social['roll_number'] = $body['roll']	;
 		$social['username'] = $newUser['username'];
 		$social['social_id'] = $facebookData['id'];
 		$social['type'] = "facebook";
@@ -197,6 +200,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			"jti" => $jti,
 			"username" => $student[0]->username,
 			"student_id" => $student[0]->student_id,
+			"college_id" => $student[0]->college_id,
 			];
 			$secret = getenv("JWT_SECRET");
 			$token = JWT::encode($payload, $secret, "HS256");
@@ -463,7 +467,9 @@ $app->post("/signup", function ($request, $response, $arguments) {
 	"iat" => $now->getTimeStamp(),
 	"exp" => $future->getTimeStamp(),
 	"jti" => $jti,
-	"username" => $newUser['username']
+	"username" => $newUser['username'],
+	"college_id" => $newUser['college_id'],
+
 	];
 	$secret = getenv("JWT_SECRET");
 	$token = JWT::encode($payload, $secret, "HS256");

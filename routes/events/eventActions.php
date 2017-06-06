@@ -1,13 +1,51 @@
 <?php
 
+use App\Event;
 use App\EventBookmarks;
 use App\EventRsvp;
 use Exception\ForbiddenException;
 use Exception\NotFoundException;
+use Slim\Middleware\JwtAuthentication;
 
 use Ramsey\Uuid\Uuid;
 use Firebase\JWT\JWT;
 use Tuupola\Base62;
+
+
+
+
+$app->delete("/delEvent/{event_id}", function ($request, $response, $arguments) {
+
+  $token = $request->getHeader('authorization');
+  $token = substr($token[0], strpos($token[0], " ") + 1);  
+  $JWT = $this->get('JwtAuthentication');
+  $token = $JWT->decodeToken($JWT->fetchToken($request));
+
+  if (!$token) {
+    throw new ForbiddenException("Token not found", 404);
+  }
+  if (false === $event = $this->spot->mapper("App\Event")->first([
+    "event_id" => $arguments["event_id"],
+    "created_by_username" =>  $this->token->decoded->username
+    ])) {
+    throw new NotFoundException("Event not found.", 404);
+}
+  if ( $event->created_by_username != $token->username)  {
+    throw new ForbiddenException("Only the owner can delete the event", 404);
+  }
+
+  
+$this->spot->mapper("App\Event")->delete($event);
+$data["status"] = "ok";
+$data["message"] = "Event Deleted";
+return $response->withStatus(200)
+->withHeader("Content-Type", "application/json")
+->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+});
+
+
+
+
 
 $app->post("/bookmarkEvent/{event_id}", function ($request, $response, $arguments) {
  /* Check if token has needed scope. */

@@ -1,5 +1,6 @@
 <?php
 
+use App\Content;
 use App\ContentResponses;
 use App\ContentBookmarks;
 use App\ContentAppreciate;
@@ -16,6 +17,39 @@ use League\Fractal\Serializer\DataArraySerializer;
 use Ramsey\Uuid\Uuid;
 use Firebase\JWT\JWT;
 use Tuupola\Base62;
+
+
+
+
+$app->delete("/delContent/{content_id}", function ($request, $response, $arguments) {
+
+  $token = $request->getHeader('authorization');
+  $token = substr($token[0], strpos($token[0], " ") + 1);  
+  $JWT = $this->get('JwtAuthentication');
+  $token = $JWT->decodeToken($JWT->fetchToken($request));
+
+  if (!$token) {
+    throw new ForbiddenException("Token not found", 404);
+  }
+  if (false === $content = $this->spot->mapper("App\Content")->first([
+    "content_id" => $arguments["content_id"],
+    "created_by_username" =>  $this->token->decoded->username
+    ])) {
+    throw new NotFoundException("Content not found.", 404);
+}
+
+  if ( $content->created_by_username != $token->username)  {
+    throw new ForbiddenException("Only the owner can delete the content", 404);
+  }
+  
+$this->spot->mapper("App\Content")->delete($content);
+$data["status"] = "ok";
+$data["message"] = "Content Deleted";
+return $response->withStatus(200)
+->withHeader("Content-Type", "application/json")
+->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+});
+
 
 
 
@@ -101,9 +135,11 @@ $app->delete("/contentResponse/{content_response_id}", function ($request, $resp
     ])) {
     throw new NotFoundException("Response wasn't there.", 404);
 }
+
   if ( $contentresponse->username != $token->username)  {
     throw new ForbiddenException("Only the owner can delete the response", 404);
   }
+
   
 $this->spot->mapper("App\ContentResponses")->delete($contentresponse);
 $data["status"] = "ok";
@@ -112,7 +148,6 @@ return $response->withStatus(200)
 ->withHeader("Content-Type", "application/json")
 ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
-
 
 
 $app->patch("/contentResponse/{content_response_id}", function ($request, $response, $arguments) {
