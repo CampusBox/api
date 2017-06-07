@@ -32,7 +32,7 @@ $app->get("/events", function ($request, $response, $arguments) {
 	$offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
 
 	if($token){
-		$test -> $token->username;
+		$test = $token->username;
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events` 
 		        WHERE college_id = " . $token->college_id . " OR audience = 1
@@ -42,6 +42,7 @@ $app->get("/events", function ($request, $response, $arguments) {
 		        END
 		        LIMIT " . $limit ." OFFSET " . $offset);
 	} else {
+		$test = 0;
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events`
 		        LIMIT " . $limit ." OFFSET " . $offset);
