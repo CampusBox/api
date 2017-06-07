@@ -255,6 +255,10 @@ $app->get("/contentsImage/{content_item_id}", function ($request, $response, $ar
 	->where(["content_item_id"=>$arguments['content_item_id']])
 	->first();
 
+	if (false === $content) {
+		throw new NotFoundException("Content not found.", 404);
+	};
+
 	$new_data=explode(";",$content->image);
 	$type=$new_data[0];
 	$data=explode(",",$new_data[1]);

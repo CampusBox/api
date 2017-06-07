@@ -228,6 +228,9 @@ $app->get("/eventsImage/{event_id}", function ($request, $response, $arguments) 
 	$event = $this->spot->mapper("App\Event")
 	->where(["event_id"=>$arguments['event_id']])
 	->first();
+	if (false === $event) {
+		throw new NotFoundException("Event not found.", 404);
+	};
 
 	$new_data=explode(";",$event->image);
 	$type=$new_data[0];
@@ -431,7 +434,7 @@ $app->patch("/events/{id}", function ($request, $response, $arguments) {
 	                                                               "event_id" => $arguments["id"],
 	                                                               ])) {
 		throw new NotFoundException("Event not found.", 404);
-};
+	};
 
 /* PATCH requires If-Unmodified-Since or If-Match request header to be present. */
 // if (false === $this->cache->hasStateValidator($request)) {
