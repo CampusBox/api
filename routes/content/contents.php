@@ -435,9 +435,17 @@ $app->get("/content/{id}", function ($request, $response, $arguments) {
 
 $app->post("/addContent", function ($request, $response, $arguments) {
 	$body = $request->getParsedBody();
+	if(isset($token->college_id)){
+		if($token->college_id==NULL){
+			$college_id = 0;
+		}
+	}else{
+		$college_id = $token->college_id;
+	}
+
 
 	$content['created_by_username'] =  $this->token->decoded->username;
-	$content['college_id'] =  $this->token->decoded->college_id;
+	$content['college_id'] =  $college_id;
 	$content['title'] = $body['title'];
 
 	$content_type = $body['type'];
