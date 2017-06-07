@@ -351,7 +351,7 @@ $app->post("/eventsFilter", function ($request, $response, $arguments) {
 $app->post("/addEvent", function ($request, $response, $arguments) {
 	$body = $request->getParsedBody();
 
-	$event['college_id'] =  $this->token->decoded->college_id;
+	$event['college_id'] =  isset($this->token->decoded->college_id)?:0;
 	$event['created_by_username'] =  $this->token->decoded->username;
 	$event['title'] = $body['event']['title'];
 	$event['subtitle'] = $body['event']['subtitle'];
@@ -362,7 +362,7 @@ $app->post("/addEvent", function ($request, $response, $arguments) {
 	$event['venue'] = $body['event']['venue'];
 	$event['audience'] = $body['event']['audience'];
 	$event['event_type_id'] = (int)$body['event']['type'];
-	$event['event_category_id'] = (int)$body['event']['category'];
+	$event['event_category_id'] = isset($body['event']['category']) ? (int)$body['event']['category']:0;
 	$event['link'] = $body['event']['link'];
 	$event['organiser_name'] = $body['event']['organiserName'];
 	$event['organiser_phone'] = (int)$body['event']['organiserPhone'];
@@ -374,6 +374,8 @@ $app->post("/addEvent", function ($request, $response, $arguments) {
 	$event['from_date'] = $body['event']['fromDate'];
 	$event['from_time'] = $body['event']['fromTime'];
 	$event['from_period'] = $body['event']['fromPeriod']=="am"?0:1;
+	$event['city'] = $body['event']['city'];
+	$event['state'] = isset($body['event']['state'])?:null;
 
 	$newEvent = new Event($event);
 	$this->spot->mapper("App\Event")->save($newEvent);
