@@ -70,6 +70,11 @@ $app->get("/events", function ($request, $response, $arguments) {
 });
 
 $app->get("/minievents", function ($request, $response, $arguments) {
+	if($token->college_id==NULL){
+		$college_id = 0;
+	}else{
+		$college_id = $token->college_id;
+	}
 
 	$token = $request->getHeader('authorization');
 	$token = substr($token[0], strpos($token[0], " ") + 1); 
@@ -82,9 +87,9 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 		$test = $token->username;
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events` "
-		        ."WHERE college_id = " . $token->college_id . " OR audience = 1 "
+		        ."WHERE college_id = " . $college_id . " OR audience = 1 "
 		        ."ORDER BY CASE "
-		        ."WHEN college_id = " . $token->college_id . " THEN college_id "
+		        ."WHEN college_id = " . $college_id . " THEN college_id "
 		        ."ELSE audience "
 		        ."END "
 		        ."LIMIT " . $limit ." OFFSET " . $offset);
