@@ -42,7 +42,7 @@ $app->get("/events", function ($request, $response, $arguments) {
 		        END
 		        LIMIT " . $limit ." OFFSET " . $offset);
 	} else {
-		$test = 0;
+		$test = '0';
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events`
 		        LIMIT " . $limit ." OFFSET " . $offset);
@@ -71,12 +71,7 @@ $app->get("/events", function ($request, $response, $arguments) {
 });
 
 $app->get("/minievents", function ($request, $response, $arguments) {
-	if($token->college_id==NULL){
-		$college_id = 0;
-	}else{
-		$college_id = $token->college_id;
-	}
-
+	
 	$token = $request->getHeader('authorization');
 	$token = substr($token[0], strpos($token[0], " ") + 1); 
 	$JWT = $this->get('JwtAuthentication');
@@ -86,6 +81,11 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 
 	if ($token) {
 		$test = $token->username;
+		if($token->college_id==NULL){
+			$college_id = 0;
+		}else{
+			$college_id = $token->college_id;
+		}
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events` "
 		        ."WHERE college_id = " . $college_id . " OR audience = 1 "
@@ -95,6 +95,7 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 		        ."END "
 		        ."LIMIT " . $limit ." OFFSET " . $offset);
 	} else{
+		$college_id = 0; //Not sure. Should work without this.
 		$test = '0';
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events`
