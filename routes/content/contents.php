@@ -24,7 +24,7 @@ $app->get("/contentSorted", function ($request, $response, $arguments) {
 	$token = $JWT->decodeToken($JWT->fetchToken($request));
 
 	if (!$token) {
-		throw new ForbiddenException("Token not found", 404);
+		throw new ForbiddenException("Token not found", 401);
 	}
 
 	$user_college_id = $token->college_id;
@@ -601,7 +601,7 @@ $app->delete("/content/{id}", function ($request, $response, $arguments) {
 	$token = $JWT->decodeToken($JWT->fetchToken($request));
 
 	if (!$token) {
-		throw new ForbiddenException("Token not found", 404);
+		throw new ForbiddenException("Token not found", 401);
 	}
 
 	/* Load existing content using provided id */
