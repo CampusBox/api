@@ -119,13 +119,16 @@ $app->get("/search/{query}", function ($request, $response, $arguments) {
 
   $creativity = $this->spot->mapper("App\Content")->query('
                                                           SELECT * FROM contents
-                                                          WHERE title LIKE "%'.$arguments['query'].'%"
+                                                          WHERE title LIKE "'.$arguments['query'].'%"
+                                                          OR title LIKE "% '.$arguments['query'].'%"
+
                                                           ');
   $resourceCreativity = new Collection($creativity, new ContentMiniTransformer);
 
   $events = $this->spot->mapper("App\Event")->query('
                                                     SELECT * FROM events
-                                                    WHERE title LIKE "%'.$arguments['query'].'%"
+                                                    WHERE title LIKE "'.$arguments['query'].'%"
+                                                    OR title LIKE "% '.$arguments['query'].'%"
                                                     ');
   $resourceEvents = new Collection($events, new EventMiniTransformer(['username' => $test, 'type' => 'get']));
 
