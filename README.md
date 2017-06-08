@@ -10,5 +10,6 @@
 
 ## Working
 
-The working of the api is documented [here](https://docs.google.com/presentation/d/1veVYf3CQ3MdZ6qgL9FJzYtFx7StPoU6NinlxnW71MyA/pub?start=false&loop=false&delayms=3000)
+The working of the api is documented [here](https://docs.google.com/presentation/d/1veVYf3CQ3MdZ6qgL9FJzYtFx7StPoU6NinlxnW71MyA/pub?start=false&loop=false&delayms=3000).
+
 Go through the slides and hit us up for any info or problem.
