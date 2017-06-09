@@ -24,24 +24,25 @@ $app->get("/student/{username}", function ($request, $response, $arguments) {
         "username" => $arguments["username"]
         ])) {
         throw new NotFoundException("Student not found.", 404);
-};
-/* If-Modified-Since and If-None-Match request header handling. */
-/* Heads up! Apache removes previously set Last-Modified header */
-/* from 304 Not Modified responses. */
-if ($this->cache->isNotModified($request, $response)) {
-    return $response->withStatus(304);
-}
+    };
+    /* If-Modified-Since and If-None-Match request header handling. */
+    /* Heads up! Apache removes previously set Last-Modified header */
+    /* from 304 Not Modified responses. */
+    if ($this->cache->isNotModified($request, $response)) {
+        return $response->withStatus(304);
+    }
 
-/* Serialize the response data. */
-$fractal = new Manager();
-$fractal->setSerializer(new DataArraySerializer);
-$resource = new Item($student, new StudentTransformer(['username' => $test, 'type' => 'get']));
-$data = $fractal->createData($resource)->toArray();
+    /* Serialize the response data. */
+    $fractal = new Manager();
+    $fractal->setSerializer(new DataArraySerializer);
+    $resource = new Item($student, new StudentTransformer(['username' => $test, 'type' => 'get']));
+    $data = $fractal->createData($resource)->toArray();
 
-return $response->withStatus(200)
-->withHeader("Content-Type", "appliaction/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    return $response->withStatus(200)
+    ->withHeader("Content-Type", "appliaction/json")
+    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
+
 $app->get("/myProfile", function ($request, $response, $arguments) {
 
     /* Load existing student using provided id */
@@ -49,23 +50,23 @@ $app->get("/myProfile", function ($request, $response, $arguments) {
         "username" => $this->token->decoded->username
         ])) {
         throw new NotFoundException("Student not found.", 404);
-};
-/* If-Modified-Since and If-None-Match request header handling. */
-/* Heads up! Apache removes previously set Last-Modified header */
-/* from 304 Not Modified responses. */
-if ($this->cache->isNotModified($request, $response)) {
-    return $response->withStatus(304);
-}
+    };
+    /* If-Modified-Since and If-None-Match request header handling. */
+    /* Heads up! Apache removes previously set Last-Modified header */
+    /* from 304 Not Modified responses. */
+    if ($this->cache->isNotModified($request, $response)) {
+        return $response->withStatus(304);
+    }
 
-/* Serialize the response data. */
-$fractal = new Manager();
-$fractal->setSerializer(new DataArraySerializer);
-$resource = new Item($student, new StudentTransformer);
-$data = $fractal->createData($resource)->toArray();
+    /* Serialize the response data. */
+    $fractal = new Manager();
+    $fractal->setSerializer(new DataArraySerializer);
+    $resource = new Item($student, new StudentTransformer);
+    $data = $fractal->createData($resource)->toArray();
 
-return $response->withStatus(200)
-->withHeader("Content-Type", "appliaction/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    return $response->withStatus(200)
+    ->withHeader("Content-Type", "appliaction/json")
+    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 $app->get("/studentEvents/{username}", function ($request, $response, $arguments) {
@@ -164,22 +165,22 @@ $app->patch("/students/{username}", function ($request, $response, $arguments) {
         "username" => $arguments["username"]
         ])) {
         throw new NotFoundException("Student not found.", 404);
-};
+    };
 
-$body = $request->getParsedBody();
-$student->data($body);
-$this->spot->mapper("App\Student")->save($student);
+    $body = $request->getParsedBody();
+    $student->data($body);
+    $this->spot->mapper("App\Student")->save($student);
 
-$fractal = new Manager();
-$fractal->setSerializer(new DataArraySerializer);
-$resource = new Item($student, new StudentTransformer);
-$data = $fractal->createData($resource)->toArray();
-$data["status"] = "ok";
-$data["message"] = "Student updated";
+    $fractal = new Manager();
+    $fractal->setSerializer(new DataArraySerializer);
+    $resource = new Item($student, new StudentTransformer);
+    $data = $fractal->createData($resource)->toArray();
+    $data["status"] = "ok";
+    $data["message"] = "Student updated";
 
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    return $response->withStatus(200)
+    ->withHeader("Content-Type", "application/json")
+    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 $app->post("/about", function ($request, $response, $arguments) {
@@ -190,30 +191,30 @@ $app->post("/about", function ($request, $response, $arguments) {
         "username" => $this->token->decoded->username
         ])) {
         throw new NotFoundException("Student not found.", 404);
-};
+    };
 
 
-$body = $request->getParsedBody();
+    $body = $request->getParsedBody();
 
-/* PUT request assumes full representation. If any of the properties is */
-/* missing set them to default values by clearing the student object first. */
-$entity = $this->spot->mapper("App\Student")->first(['username' => $this->token->decoded->username]);
-if ($entity) {
-    $entity->about = $body;
-    $this->spot->mapper("App\Student")->update($entity);
-}
+    /* PUT request assumes full representation. If any of the properties is */
+    /* missing set them to default values by clearing the student object first. */
+    $entity = $this->spot->mapper("App\Student")->first(['username' => $this->token->decoded->username]);
+    if ($entity) {
+        $entity->about = $body;
+        $this->spot->mapper("App\Student")->update($entity);
+    }
 
-$fractal = new Manager();
-$fractal->setSerializer(new DataArraySerializer);
-$resource = new Item($entity, new StudentTransformer);
-$data = $fractal->createData($resource)->toArray();
-$data["status"] = "ok";
-$data["message"] = "Student updated";
-$data["body"] = $body;
+    $fractal = new Manager();
+    $fractal->setSerializer(new DataArraySerializer);
+    $resource = new Item($entity, new StudentTransformer);
+    $data = $fractal->createData($resource)->toArray();
+    $data["status"] = "ok";
+    $data["message"] = "Student updated";
+    $data["body"] = $body;
 
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    return $response->withStatus(200)
+    ->withHeader("Content-Type", "application/json")
+    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 $app->post("/addStudentSkills", function ($request, $response, $arguments) {
@@ -308,4 +309,4 @@ $app->get("/userImage", function ($request, $response, $arguments) {
         return $response->withStatus(200)
         ->withHeader("Content-Type", "application/json")
         ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-    });
+});

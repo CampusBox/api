@@ -15,7 +15,7 @@ use Facebook\Facebook;
 $app->post("/signup", function ($request, $response, $arguments) {
 	$body = $request->getParsedBody();
 	if(count($body['intrests']) > 20){
-		$error['message'] = 'Tooooo many intersts ! we do appreciate it but can not save it ';
+		$error['message'] = 'Too many Interests ! We do appreciate it, but can not save it ';
 		return $response->withStatus(201)
 		->withHeader("Content-Type", "application/json")
 		->write(json_encode($error, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
@@ -76,7 +76,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			->mapper("App\SocialAccount")
 			->where(['email' => $facebookData['email']]);
 			if (count($student) > 0) {
-
 
 				$social['username'] = $student[0]->username;
 				$social['college_id'] = $student[0]->college_id;
@@ -147,8 +146,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		$newUserAccount = new Student($newUser);
 		$this->spot->mapper("App\Student")->save($newUserAccount);
 
-
-
 					// add same data to social accounts table
 		$social['college_id'] = 0;
 		$social['roll_number'] = $body['roll']	;
@@ -171,7 +168,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		$this->spot->mapper("App\SocialAccount")->save($socialAccount);
 	}
 	else if ($body['type']=="google"){
-
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, 'https://www.googleapis.com/oauth2/v1/userinfo?access_token='.$body['token']);
@@ -265,55 +261,54 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 		}
 			// making a completly fresh account
-	
+
 			//we make a new username basis of the email provided 
 
-			if(isset($googleData->email)){
-				$newUser['username'] = strstr($googleData->email, '@', TRUE);
-				$student = new SocialAccount();
-				$student = $this->spot
-				->mapper("App\SocialAccount")
-				->where(['username' =>$newUser['username']]);
+		if(isset($googleData->email)){
+			$newUser['username'] = strstr($googleData->email, '@', TRUE);
+			$student = new SocialAccount();
+			$student = $this->spot
+			->mapper("App\SocialAccount")
+			->where(['username' =>$newUser['username']]);
 					//if same username exists just use the fb id 
-				if (count($student) > 0) {
-					$newUser['username'] = $googleData->id;		
-				}
-			// if google is not sending the email id (happens with unverified users )
-			}else{		
+			if (count($student) > 0) {
 				$newUser['username'] = $googleData->id;		
 			}
+			// if google is not sending the email id (happens with unverified users )
+		}else{		
+			$newUser['username'] = $googleData->id;		
+		}
 
 			// first add user to students table
-			$newUser['college_id'] = 0;
-			$newUser['name'] = isset($googleData->name)?$googleData->name:" ";
-			$newUser['email'] = isset($googleData->email)? $googleData->email:" ";
-			$newUser['gender'] = isset($googleData->gender)?$googleData->gender:" ";
-			$newUser['birthday'] = isset($googleData->birthday) ?$googleData->birthday:" ";
-			$newUser['about'] = isset($googleData->about) ?$googleData->about: "Apparently, this user prefers to keep an air of mystery about them";
-			$newUser['image'] = isset($googleData->picture)?$googleData->picture:" ";
+		$newUser['college_id'] = 0;
+		$newUser['name'] = isset($googleData->name)?$googleData->name:" ";
+		$newUser['email'] = isset($googleData->email)? $googleData->email:" ";
+		$newUser['gender'] = isset($googleData->gender)?$googleData->gender:" ";
+		$newUser['birthday'] = isset($googleData->birthday) ?$googleData->birthday:" ";
+		$newUser['about'] = isset($googleData->about) ?$googleData->about: "Apparently, this user prefers to keep an air of mystery about them";
+		$newUser['image'] = isset($googleData->picture)?$googleData->picture:" ";
 
-			$newUserAccount = new Student($newUser);
-			$this->spot->mapper("App\Student")->save($newUserAccount);
-
+		$newUserAccount = new Student($newUser);
+		$this->spot->mapper("App\Student")->save($newUserAccount);
 
 
 			// add same data to social accounts table
-			$social['college_id'] = 0;
-			$social['username'] = $newUser['username'];
-			$social['social_id'] = $googleData->id;
-			$social['type'] = "google";
-			$social['token'] =$body['token'];
-			$social['name'] = isset($googleData->name)?$googleData->name:" ";
-			$social['email'] = isset($googleData->email)? $googleData->email:" ";
-			$social['gender'] = isset($googleData->gender)?$googleData->gender:" ";
-			$social['gender'] = isset($googleData->gender)?$googleData->gender:" ";
-			$social['birthday'] = isset($googleData->birthday) ?$googleData->birthday:" ";
-			$social['link'] = isset($googleData->link) ?$googleData->link:" ";
-			$social['about'] = isset($googleData->about) ?$googleData->about: " ";
-			$social['picture'] = isset($googleData->picture)?$googleData->picture:" ";
-			$social['cover'] = isset($googleData->cover['url'])?$googleData->picture:" ";
-			$socialAccount = new SocialAccount($social);
-			$this->spot->mapper("App\SocialAccount")->save($socialAccount);
+		$social['college_id'] = 0;
+		$social['username'] = $newUser['username'];
+		$social['social_id'] = $googleData->id;
+		$social['type'] = "google";
+		$social['token'] =$body['token'];
+		$social['name'] = isset($googleData->name)?$googleData->name:" ";
+		$social['email'] = isset($googleData->email)? $googleData->email:" ";
+		$social['gender'] = isset($googleData->gender)?$googleData->gender:" ";
+		$social['gender'] = isset($googleData->gender)?$googleData->gender:" ";
+		$social['birthday'] = isset($googleData->birthday) ?$googleData->birthday:" ";
+		$social['link'] = isset($googleData->link) ?$googleData->link:" ";
+		$social['about'] = isset($googleData->about) ?$googleData->about: " ";
+		$social['picture'] = isset($googleData->picture)?$googleData->picture:" ";
+		$social['cover'] = isset($googleData->cover['url'])?$googleData->picture:" ";
+		$socialAccount = new SocialAccount($social);
+		$this->spot->mapper("App\SocialAccount")->save($socialAccount);
 
 		
 	}
@@ -328,7 +323,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		->orWhere(['link' => $linkedinData->link]);
 
 				//check it account is already there 
-
 		if (count($student) > 0) {
 			$data["type"] = "login";
 			$now = new DateTime();

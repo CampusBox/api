@@ -45,8 +45,10 @@ class ContentResponses extends \Spot\Entity {
 		$this->data([
 		]);
 	}
-
-	public static function relations(Mapper $mapper, Entity $entity) {
+	//IMPORTANT
+	//revert mapperinterface and entityinterface to mapper and entity if issues 
+	//---DudeBro
+	public static function relations(MapperInterface $mapper, EntityInterface $entity) {
 		return [
 			'Content' => $mapper->belongsTo($entity, 'App\Content', 'content_id'),
 			'Student' => $mapper->belongsTo($entity, 'App\Student', 'username'),

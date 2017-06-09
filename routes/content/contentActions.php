@@ -36,19 +36,19 @@ $app->delete("/delContent/{content_id}", function ($request, $response, $argumen
     "created_by_username" =>  $this->token->decoded->username
     ])) {
     throw new NotFoundException("Content not found.", 404);
-}
+  }
 
   if ( $content->created_by_username != $token->username)  {
     throw new ForbiddenException("Only the owner can delete the content", 404);
   }
   
-$this->spot->mapper("App\Content")->delete($content);
-$data["status"] = "ok";
-$data["message"] = "Content Deleted";
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
+  $this->spot->mapper("App\Content")->delete($content);
+  $data["status"] = "ok";
+  $data["message"] = "Content Deleted";
+  return $response->withStatus(200)
+  ->withHeader("Content-Type", "application/json")
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+  });
 
 
 
@@ -118,7 +118,6 @@ $app->post("/contentResponse/{content_id}", function ($request, $response, $argu
 });
 
 
-
 $app->delete("/contentResponse/{content_response_id}", function ($request, $response, $arguments) {
 
   $token = $request->getHeader('authorization');
@@ -134,19 +133,19 @@ $app->delete("/contentResponse/{content_response_id}", function ($request, $resp
     "username" =>  $this->token->decoded->username
     ])) {
     throw new NotFoundException("Response wasn't there.", 404);
-}
+  }
 
   if ( $contentresponse->username != $token->username)  {
     throw new ForbiddenException("Only the owner can delete the response", 404);
   }
 
-  
-$this->spot->mapper("App\ContentResponses")->delete($contentresponse);
-$data["status"] = "ok";
-$data["message"] = "Response Removed";
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    
+  $this->spot->mapper("App\ContentResponses")->delete($contentresponse);
+  $data["status"] = "ok";
+  $data["message"] = "Response Removed";
+  return $response->withStatus(200)
+  ->withHeader("Content-Type", "application/json")
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));  
 });
 
 
@@ -167,13 +166,13 @@ $app->patch("/contentResponse/{content_response_id}", function ($request, $respo
   $update_response->response_text = $body['response'];
   $data["new"] = $update_response->response_text;
   $status = $this->spot->mapper("App\ContentResponses")->update($update_response);
-}
+  }
 
-$data["status"] = $status;
-$data["message"] = "Response updated.";
-return $response->withStatus(201)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+  $data["status"] = $status;
+  $data["message"] = "Response updated.";
+  return $response->withStatus(201)
+  ->withHeader("Content-Type", "application/json")
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 
 });
 
@@ -188,20 +187,26 @@ $app->post("/bookmarkContent/{content_id}", function ($request, $response, $argu
  "username" => $this->token->decoded->username,
  "content_id" => $arguments["content_id"]
  ];
+
  $bookmark = new ContentBookmarks($body);
+
  if (false === $check = $this->spot->mapper("App\ContentBookmarks")->first([
   "content_id" => $arguments["content_id"],
   "username" =>  $this->token->decoded->username
   ])) {
-  $this->spot->mapper("App\ContentBookmarks")->save($bookmark);
-}else{
+    $this->spot->mapper("App\ContentBookmarks")->save($bookmark);
+
+  }else {
+
   throw new NotFoundException("Already Bookmarked", 404);
-}
-$data["status"] = "ok";
-$data["message"] = "New bookmark created";
-return $bookmark->withStatus(201)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+  }
+
+  $data["status"] = "ok";
+  $data["message"] = "New bookmark created";
+
+  return $bookmark->withStatus(201)
+  ->withHeader("Content-Type", "application/json")
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 $app->delete("/bookmarkContent/{content_id}", function ($request, $response, $arguments) {
@@ -215,13 +220,13 @@ $app->delete("/bookmarkContent/{content_id}", function ($request, $response, $ar
     "username" =>  $this->token->decoded->username
     ])) {
     throw new NotFoundException("Had never bookmarked it.", 404);
-}
-$this->spot->mapper("App\ContentBookmarks")->delete($bookmark);
-$data["status"] = "ok";
-$data["message"] = "Bookmark Removed";
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+  }
+  $this->spot->mapper("App\ContentBookmarks")->delete($bookmark);
+  $data["status"] = "ok";
+  $data["message"] = "Bookmark Removed";
+  return $response->withStatus(200)
+  ->withHeader("Content-Type", "application/json")
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 $app->post("/appreciateContent/{content_id}", function ($request, $response, $arguments) {
@@ -233,20 +238,24 @@ $app->post("/appreciateContent/{content_id}", function ($request, $response, $ar
  "username" => $this->token->decoded->username,
  "content_id" => $arguments["content_id"]
  ];
+
  $appreciate = new ContentAppreciate($body);
+
  if (false === $check = $this->spot->mapper("App\ContentAppreciate")->first([
   "content_id" => $arguments["content_id"],
   "username" =>  $this->token->decoded->username
   ])) {
-  $this->spot->mapper("App\ContentAppreciate")->save($appreciate);
-}else  {
+
+    $this->spot->mapper("App\ContentAppreciate")->save($appreciate);
+  } else  {
+
   throw new NotFoundException("Already appreciated.", 404);
-};
-$data["status"] = "ok";
-$data["message"] = "Appreciated";
-return $response->withStatus(201)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+  };
+  $data["status"] = "ok";
+  $data["message"] = "Appreciated";
+  return $response->withStatus(201)
+  ->withHeader("Content-Type", "application/json")
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 $app->delete("/appreciateContent/{content_id}", function ($request, $response, $arguments) {
@@ -259,12 +268,13 @@ $app->delete("/appreciateContent/{content_id}", function ($request, $response, $
   "content_id" => $arguments["content_id"],
   "username" =>  $this->token->decoded->username
   ])) {
-  throw new NotFoundException("Had never appreciateed it.", 404);
-};
-$this->spot->mapper("App\ContentAppreciate")->delete($appreciate);
-$data["status"] = "ok";
-$data["message"] = "Appreciation Removed";
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    throw new NotFoundException("Had never appreciateed it.", 404);
+  };
+  
+  $this->spot->mapper("App\ContentAppreciate")->delete($appreciate);
+  $data["status"] = "ok";
+  $data["message"] = "Appreciation Removed";
+  return $response->withStatus(200)
+  ->withHeader("Content-Type", "application/json")
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });

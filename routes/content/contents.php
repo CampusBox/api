@@ -73,6 +73,7 @@ $app->get("/contentSorted", function ($request, $response, $arguments) {
 	->write(json_encode($content, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 
 });
+
 $app->get("/contents[/{content_type_id}]", function ($request, $response, $arguments) {
 
 	$limit = isset($_GET['limit']) ? $_GET['limit'] : 3;
@@ -118,6 +119,7 @@ $app->get("/contents[/{content_type_id}]", function ($request, $response, $argum
 	->withHeader("Content-Type", "application/json")
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
+
 $app->post("/contents", function ($request, $response, $arguments) {
 	$body = $request->getParsedBody();
 
@@ -166,6 +168,7 @@ $app->post("/contents", function ($request, $response, $arguments) {
 	->withHeader("Content-Type", "application/json")
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
+
 $app->get("/contentsDashboard", function ($request, $response, $arguments) {
 
 	$token = $request->getHeader('authorization');
@@ -204,6 +207,7 @@ $app->get("/contentsDashboard", function ($request, $response, $arguments) {
 	->withHeader("Content-Type", "application/json")
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
+
 $app->get("/contentsList", function ($request, $response, $arguments) {
 
 	$limit = isset($_GET['limit']) ? $_GET['limit'] : 3;
@@ -249,6 +253,7 @@ $app->get("/contentsList", function ($request, $response, $arguments) {
 	->withHeader("Content-Type", "application/json")
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
+
 $app->get("/contentsImage/{content_item_id}", function ($request, $response, $arguments) {
 
 	$content = $this->spot->mapper("App\ContentItems")
@@ -267,6 +272,7 @@ $app->get("/contentsImage/{content_item_id}", function ($request, $response, $ar
 	->withHeader("Content-Type", $type)
 	->write(base64_decode($data[1]));
 });
+
 $app->get("/contentAppreciates/{content_id}", function ($request, $response, $arguments) { 
 
 	$appreciates = $this->spot->mapper("App\ContentAppreciate") 
@@ -286,6 +292,7 @@ $app->get("/contentAppreciates/{content_id}", function ($request, $response, $ar
 	->withHeader("Content-Type", "application/json") 
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT)); 
 }); 
+
 $app->get("/contentsRandom", function ($request, $response, $arguments) {
 
 	$token = $request->getHeader('authorization');
@@ -315,6 +322,7 @@ $app->get("/contentsRandom", function ($request, $response, $arguments) {
 	->withHeader("Content-Type", "application/json")
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
+
 $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $arguments) {
 
 	$token = $request->getHeader('authorization');

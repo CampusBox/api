@@ -47,6 +47,7 @@ $app->get("/search/students/{query}", function ($request, $response, $arguments)
   ->withHeader("Content-Type", "appliaction/json")
   ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
+
 $app->get("/search/events/{title}", function ($request, $response, $arguments) {
 
   /* If-Modified-Since and If-None-Match request header handling. */
@@ -217,4 +218,4 @@ $app->get("/search/{query}", function ($request, $response, $arguments) {
     return $response->withStatus(200)
     ->withHeader("Content-Type", "application/json")
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-  });
+});
