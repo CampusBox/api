@@ -92,12 +92,12 @@ $app->get("/contents[/{content_type_id}]", function ($request, $response, $argum
 	if(isset($arguments['content_type_id'])){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id']])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
 		->order(["timer" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
-		->all()
+		->where(["status"=>"active"])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}

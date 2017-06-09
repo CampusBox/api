@@ -15,7 +15,8 @@ class Content extends \Spot\Entity {
 		"content_type_id" => ["type" => "integer", "required" => true],
 		"view_type" => ["type" => "integer", "required" => true],
 		"title" => ["type" => "string", "required" => true],
-		"timer" => ["type" => "string"]
+		"timer" => ["type" => "string"],
+		"status" => ["type" => "string"]
 		];
 	}
 	public static function contents(EventEmitter $emitter) {

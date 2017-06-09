@@ -98,6 +98,7 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 		$college_id = 0; //Not sure. Should work without this.
 		$test = '0';
 		$events = $this->spot->mapper("App\Event")
+		->where(["status"=>"active"])		
 		->query("SELECT * FROM `events`
 		        LIMIT " . $limit ." OFFSET " . $offset);
 	}

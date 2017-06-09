@@ -39,7 +39,8 @@ class Event extends \Spot\Entity {
 		"to_period" => ["type" => "integer"],
 		"from_date" => ["type" => "string"],
 		"from_time" => ["type" => "string"],
-		"from_period" => ["type" => "integer"]
+		"from_period" => ["type" => "integer"],
+		"status" => ["type" => "string"],
 
 
 
