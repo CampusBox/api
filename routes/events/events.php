@@ -124,6 +124,64 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
+$app->post("/events", function ($request, $response, $arguments) { 
+  $body = $request->getParsedBody(); 
+ 
+  $limit = $body['limit']; 
+  $offset = $body['offset']; 
+  $type_id =$body['filters']['type']; 
+  $audience =$body['filters']['audience']; 
+ 
+  $token = $request->getHeader('authorization'); 
+  $token = substr($token[0], strpos($token[0], " ") + 1);  
+  $JWT = $this->get('JwtAuthentication'); 
+  $token = $JWT->decodeToken($JWT->fetchToken($request)); 
+ 
+  if ($token)  
+    $test = $token->username; 
+  else 
+    $test = '0'; 
+ 
+  if(count($type_id)){ 
+ 
+    $events = $this->spot->mapper("App\Event") 
+    ->all() 
+    ->where(["event_type_id"=>$type_id, "audience"=>$audience, "time_created <"=> new DateTime('-3 days')]) 
+    ->limit($limit, $offset) 
+    ->order(["time_created" => "DESC"]); 
+  }else{ 
+ 
+    $events = $this->spot->mapper("App\Event") 
+    ->query("SELECT * FROM `events`  
+            WHERE college_id = " . $token->college_id . " OR audience = 1 
+            ORDER BY CASE  
+            WHEN college_id = " . $token->college_id . " THEN college_id 
+            ELSE audience 
+            END 
+            LIMIT " . $limit ." OFFSET " . $offset); 
+  } 
+ 
+  $offset += $limit; 
+ 
+  /* Serialize the response data. */ 
+  $fractal = new Manager(); 
+  $fractal->setSerializer(new DataArraySerializer); 
+ 
+  if (isset($_GET['include'])) { 
+    $fractal->parseIncludes($_GET['include']); 
+  } 
+ 
+  $resource = new Collection($events, new EventTransformer(['username' => $test, 'type' => 'get'])); 
+  $data = $fractal->createData($resource)->toArray(); 
+   
+  $data['meta']['offset'] = $offset; 
+  $data['meta']['limit'] = $limit; 
+ 
+ 
+  return $response->withStatus(200) 
+  ->withHeader("Content-Type", "application/json") 
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT)); 
+});
 
 $app->get("/eventsTop", function ($request, $response, $arguments) {
 
