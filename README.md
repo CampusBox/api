@@ -3,6 +3,7 @@
 ## Installation
 
 - Clone the repository `git clone https://github.com/CampusBox/api`
+- Make sure you have `composer` [installed](https://getcomposer.org/download/).
 - Make sure to create/import the files mentioned in `.gitignore` file
 - Install [XAMPP](https://www.apachefriends.org/index.html) and start the Apache and MySQL server
 - Clone the phpMyAdmin database into your local server.
