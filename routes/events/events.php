@@ -146,7 +146,7 @@ $app->post("/events", function ($request, $response, $arguments) {
  
     $events = $this->spot->mapper("App\Event") 
     ->all() 
-    ->where(["event_type_id"=>$type_id, "audience"=>$audience, "time_created <"=> new DateTime('-3 days')]) 
+    ->where(["event_type_id"=>$type_id, "audience"=>$audience]) 
     ->limit($limit, $offset) 
     ->order(["time_created" => "DESC"]); 
   }else{ 
