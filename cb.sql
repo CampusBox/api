@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.5.1
--- http://www.phpmyadmin.net
+-- version 4.6.6
+-- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Jun 10, 2017 at 01:18 AM
--- Server version: 10.1.16-MariaDB
--- PHP Version: 7.0.9
+-- Host: localhost:3306
+-- Generation Time: Jun 10, 2017 at 02:04 AM
+-- Server version: 10.0.30-MariaDB-cll-lve
+-- PHP Version: 5.6.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -17,7 +17,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `cb`
+-- Database: `bookfoxi_campusbox`
 --
 
 -- --------------------------------------------------------
@@ -32,10 +32,6 @@ CREATE TABLE `branches` (
   `name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `branches`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -48,10 +44,6 @@ CREATE TABLE `class_group` (
   `name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `class_group`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -62,10 +54,6 @@ CREATE TABLE `col` (
   `college_id` int(4) NOT NULL,
   `name` varchar(500) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
---
--- RELATIONS FOR TABLE `col`:
---
 
 -- --------------------------------------------------------
 
@@ -87,10 +75,6 @@ CREATE TABLE `college` (
   `cover_pic` text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `college`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -104,12 +88,6 @@ CREATE TABLE `collegeadmins` (
   `rollnumber` int(11) NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `collegeadmins`:
---   `username`
---       `students` -> `username`
---
 
 -- --------------------------------------------------------
 
@@ -127,10 +105,6 @@ CREATE TABLE `college_updates` (
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `college_updates`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -143,10 +117,6 @@ CREATE TABLE `contacts` (
   `open` int(11) DEFAULT NULL,
   `type` text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `contacts`:
---
 
 -- --------------------------------------------------------
 
@@ -165,14 +135,6 @@ CREATE TABLE `contents` (
   `status` varchar(50) NOT NULL DEFAULT 'active'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
 
---
--- RELATIONS FOR TABLE `contents`:
---   `created_by_username`
---       `students` -> `username`
---   `college_id`
---       `college` -> `college_id`
---
-
 -- --------------------------------------------------------
 
 --
@@ -186,14 +148,6 @@ CREATE TABLE `content_appreciates` (
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
 
---
--- RELATIONS FOR TABLE `content_appreciates`:
---   `content_id`
---       `contents` -> `content_id`
---   `username`
---       `students` -> `username`
---
-
 -- --------------------------------------------------------
 
 --
@@ -206,14 +160,6 @@ CREATE TABLE `content_bookmarks` (
   `username` varchar(50) NOT NULL,
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `content_bookmarks`:
---   `content_id`
---       `contents` -> `content_id`
---   `username`
---       `students` -> `username`
---
 
 -- --------------------------------------------------------
 
@@ -234,32 +180,6 @@ CREATE TABLE `content_items` (
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
 
---
--- RELATIONS FOR TABLE `content_items`:
---   `content_id`
---       `contents` -> `content_id`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `content_reports`
---
-
-CREATE TABLE `content_reports` (
-  `id` int(10) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `content_id` text NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `type_id` int(10) NOT NULL,
-  `reason` text NOT NULL,
-  `reported` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `content_reports`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -271,10 +191,6 @@ CREATE TABLE `content_tags` (
   `content_id` int(11) NOT NULL,
   `name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `content_tags`:
---
 
 -- --------------------------------------------------------
 
@@ -288,10 +204,6 @@ CREATE TABLE `content_types` (
   `default_view_type` tinyint(4) NOT NULL DEFAULT '0',
   `has_multiple_view_types` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `content_types`:
---
 
 -- --------------------------------------------------------
 
@@ -317,7 +229,7 @@ CREATE TABLE `events` (
   `contactperson1` int(11) DEFAULT NULL,
   `contactperson2` int(11) DEFAULT NULL,
   `venue` text NOT NULL,
-  `city` text NOT NULL,
+  `city` text,
   `state` text,
   `audience` tinyint(1) NOT NULL DEFAULT '0',
   `event_type_id` int(11) NOT NULL,
@@ -327,16 +239,9 @@ CREATE TABLE `events` (
   `organiser_phone` int(11) NOT NULL,
   `organiser_link` text,
   `price` int(10) NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `time_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` varchar(50) NOT NULL DEFAULT 'active'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `events`:
---   `created_by_username`
---       `students` -> `username`
---   `college_id`
---       `college` -> `college_id`
---
 
 -- --------------------------------------------------------
 
@@ -351,14 +256,6 @@ CREATE TABLE `event_bookmarks` (
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `event_bookmarks`:
---   `event_id`
---       `events` -> `event_id`
---   `username`
---       `students` -> `username`
---
-
 -- --------------------------------------------------------
 
 --
@@ -372,12 +269,6 @@ CREATE TABLE `event_images` (
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `event_images`:
---   `event_id`
---       `events` -> `event_id`
---
-
 -- --------------------------------------------------------
 
 --
@@ -390,32 +281,6 @@ CREATE TABLE `event_likes` (
   `username` varchar(50) NOT NULL,
   `timed` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
-
---
--- RELATIONS FOR TABLE `event_likes`:
---   `event_id`
---       `events` -> `event_id`
---   `username`
---       `students` -> `username`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `event_reports`
---
-
-CREATE TABLE `event_reports` (
-  `event_report_id` int(10) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `event_id` text NOT NULL,
-  `reason` text NOT NULL,
-  `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `event_reports`:
---
 
 -- --------------------------------------------------------
 
@@ -431,10 +296,6 @@ CREATE TABLE `event_rsvps` (
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
 
---
--- RELATIONS FOR TABLE `event_rsvps`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -446,10 +307,6 @@ CREATE TABLE `event_tags` (
   `event_id` int(11) NOT NULL,
   `name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `event_tags`:
---
 
 -- --------------------------------------------------------
 
@@ -468,10 +325,6 @@ CREATE TABLE `event_timings` (
   `info` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `event_timings`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -482,10 +335,6 @@ CREATE TABLE `event_types` (
   `event_type_id` int(10) NOT NULL,
   `name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `event_types`:
---
 
 -- --------------------------------------------------------
 
@@ -504,10 +353,6 @@ CREATE TABLE `event_updates` (
   `student_id` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `event_updates`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -522,10 +367,6 @@ CREATE TABLE `event_views` (
   `device_id` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `event_views`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -536,12 +377,8 @@ CREATE TABLE `followers` (
   `id` int(10) NOT NULL,
   `followed_username` varchar(50) NOT NULL,
   `follower_username` varchar(50) NOT NULL,
-  `timer` timestamp(1) NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ;
-
---
--- RELATIONS FOR TABLE `followers`:
---
+  `timer` timestamp(1) NOT NULL DEFAULT CURRENT_TIMESTAMP(1)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -559,10 +396,6 @@ CREATE TABLE `hostel` (
   `long` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `hostel`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -574,10 +407,6 @@ CREATE TABLE `interests` (
   `name` text NOT NULL,
   `synonyms` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `interests`:
---
 
 -- --------------------------------------------------------
 
@@ -594,10 +423,6 @@ CREATE TABLE `lastviewed` (
   `noticeboard` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `lastviewed`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -610,10 +435,6 @@ CREATE TABLE `logins` (
   `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `device` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `logins`:
---
 
 -- --------------------------------------------------------
 
@@ -630,10 +451,6 @@ CREATE TABLE `logs` (
   `deviceOs` text NOT NULL,
   `ipAddress` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `logs`:
---
 
 -- --------------------------------------------------------
 
@@ -654,10 +471,6 @@ CREATE TABLE `noticeboard` (
   `status` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `noticeboard`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -670,9 +483,33 @@ CREATE TABLE `programmes` (
   `name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+-- --------------------------------------------------------
+
 --
--- RELATIONS FOR TABLE `programmes`:
+-- Table structure for table `report_content`
 --
+
+CREATE TABLE `report_content` (
+  `report_content_id` int(11) NOT NULL,
+  `content_id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `remarks` text,
+  `time_reported` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `report_event`
+--
+
+CREATE TABLE `report_event` (
+  `report_event_id` int(11) NOT NULL,
+  `event_id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `remarks` text,
+  `time_reported` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -688,10 +525,6 @@ CREATE TABLE `request_contact` (
   `status` text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `request_contact`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -702,10 +535,6 @@ CREATE TABLE `skills` (
   `skill_id` int(10) NOT NULL,
   `name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `skills`:
---
 
 -- --------------------------------------------------------
 
@@ -732,12 +561,6 @@ CREATE TABLE `social_accounts` (
   `stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=COMPACT;
 
---
--- RELATIONS FOR TABLE `social_accounts`:
---   `username`
---       `students` -> `username`
---
-
 -- --------------------------------------------------------
 
 --
@@ -753,10 +576,6 @@ CREATE TABLE `societies` (
   `created_by` int(10) NOT NULL,
   `website` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `societies`:
---
 
 -- --------------------------------------------------------
 
@@ -789,10 +608,6 @@ CREATE TABLE `students` (
   `stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `students`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -806,10 +621,6 @@ CREATE TABLE `student_interests` (
   `interest_name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `student_interests`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -821,12 +632,6 @@ CREATE TABLE `student_skills` (
   `username` varchar(50) NOT NULL,
   `skill_name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `student_skills`:
---   `username`
---       `students` -> `username`
---
 
 -- --------------------------------------------------------
 
@@ -843,26 +648,18 @@ CREATE TABLE `subjects` (
   `credits` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `subjects`:
---
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `table 43`
+-- Table structure for table `TABLE 43`
 --
 
-CREATE TABLE `table 43` (
+CREATE TABLE `TABLE 43` (
   `COL 3` varchar(264) DEFAULT NULL,
   `COL 4` varchar(22) DEFAULT NULL,
   `COL 5` varchar(52) DEFAULT NULL,
   `COL 6` varchar(36) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
---
--- RELATIONS FOR TABLE `table 43`:
---
 
 -- --------------------------------------------------------
 
@@ -882,10 +679,6 @@ CREATE TABLE `team_members` (
   `position` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- RELATIONS FOR TABLE `team_members`:
---
-
 -- --------------------------------------------------------
 
 --
@@ -901,10 +694,6 @@ CREATE TABLE `todos` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `todos`:
---
 
 --
 -- Indexes for dumped tables
@@ -979,12 +768,6 @@ ALTER TABLE `content_items`
   ADD KEY `content_id` (`content_id`);
 
 --
--- Indexes for table `content_reports`
---
-ALTER TABLE `content_reports`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `content_tags`
 --
 ALTER TABLE `content_tags`
@@ -1031,12 +814,6 @@ ALTER TABLE `event_likes`
   ADD KEY `username` (`username`);
 
 --
--- Indexes for table `event_reports`
---
-ALTER TABLE `event_reports`
-  ADD PRIMARY KEY (`event_report_id`);
-
---
 -- Indexes for table `event_rsvps`
 --
 ALTER TABLE `event_rsvps`
@@ -1071,6 +848,30 @@ ALTER TABLE `event_updates`
 --
 ALTER TABLE `event_views`
   ADD PRIMARY KEY (`event_view_id`);
+
+--
+-- Indexes for table `followers`
+--
+ALTER TABLE `followers`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `followed_username` (`followed_username`),
+  ADD KEY `follower_username` (`follower_username`);
+
+--
+-- Indexes for table `report_content`
+--
+ALTER TABLE `report_content`
+  ADD PRIMARY KEY (`report_content_id`),
+  ADD KEY `username` (`username`),
+  ADD KEY `content_id` (`content_id`);
+
+--
+-- Indexes for table `report_event`
+--
+ALTER TABLE `report_event`
+  ADD PRIMARY KEY (`report_event_id`),
+  ADD KEY `username` (`username`),
+  ADD KEY `event_id` (`event_id`);
 
 --
 -- Indexes for table `social_accounts`
@@ -1117,47 +918,42 @@ ALTER TABLE `college`
 -- AUTO_INCREMENT for table `college_updates`
 --
 ALTER TABLE `college_updates`
-  MODIFY `update_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `update_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 --
 -- AUTO_INCREMENT for table `contents`
 --
 ALTER TABLE `contents`
-  MODIFY `content_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `content_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=316;
 --
 -- AUTO_INCREMENT for table `content_appreciates`
 --
 ALTER TABLE `content_appreciates`
-  MODIFY `content_appreciate_id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `content_appreciate_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1205;
 --
 -- AUTO_INCREMENT for table `content_bookmarks`
 --
 ALTER TABLE `content_bookmarks`
-  MODIFY `content_bookmark_id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `content_bookmark_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=170;
 --
 -- AUTO_INCREMENT for table `content_items`
 --
 ALTER TABLE `content_items`
-  MODIFY `content_item_id` int(11) NOT NULL AUTO_INCREMENT;
---
--- AUTO_INCREMENT for table `content_reports`
---
-ALTER TABLE `content_reports`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `content_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=534;
 --
 -- AUTO_INCREMENT for table `content_tags`
 --
 ALTER TABLE `content_tags`
-  MODIFY `content_tag_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `content_tag_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=122;
 --
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `event_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `event_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 --
 -- AUTO_INCREMENT for table `event_bookmarks`
 --
 ALTER TABLE `event_bookmarks`
-  MODIFY `event_bookmark_id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `event_bookmark_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 --
 -- AUTO_INCREMENT for table `event_images`
 --
@@ -1169,20 +965,15 @@ ALTER TABLE `event_images`
 ALTER TABLE `event_likes`
   MODIFY `likes_id` int(10) NOT NULL AUTO_INCREMENT;
 --
--- AUTO_INCREMENT for table `event_reports`
---
-ALTER TABLE `event_reports`
-  MODIFY `event_report_id` int(10) NOT NULL AUTO_INCREMENT;
---
 -- AUTO_INCREMENT for table `event_rsvps`
 --
 ALTER TABLE `event_rsvps`
-  MODIFY `event_rsvp_id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `event_rsvp_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=175;
 --
 -- AUTO_INCREMENT for table `event_tags`
 --
 ALTER TABLE `event_tags`
-  MODIFY `event_tag_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `event_tag_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 --
 -- AUTO_INCREMENT for table `event_timings`
 --
@@ -1202,27 +993,37 @@ ALTER TABLE `event_views`
 -- AUTO_INCREMENT for table `followers`
 --
 ALTER TABLE `followers`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
+--
+-- AUTO_INCREMENT for table `report_content`
+--
+ALTER TABLE `report_content`
+  MODIFY `report_content_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT for table `report_event`
+--
+ALTER TABLE `report_event`
+  MODIFY `report_event_id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `social_accounts`
 --
 ALTER TABLE `social_accounts`
-  MODIFY `social_account_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `social_account_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=336;
 --
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `student_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=268;
+  MODIFY `student_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=321;
 --
 -- AUTO_INCREMENT for table `student_interests`
 --
 ALTER TABLE `student_interests`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1316;
 --
 -- AUTO_INCREMENT for table `student_skills`
 --
 ALTER TABLE `student_skills`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 --
 -- Constraints for dumped tables
 --
@@ -1288,16 +1089,37 @@ ALTER TABLE `event_likes`
   ADD CONSTRAINT `event_likes_ibfk_2` FOREIGN KEY (`username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `followers`
+--
+ALTER TABLE `followers`
+  ADD CONSTRAINT `followers_ibfk_1` FOREIGN KEY (`followed_username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `followers_ibfk_2` FOREIGN KEY (`follower_username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `report_content`
+--
+ALTER TABLE `report_content`
+  ADD CONSTRAINT `report_content_ibfk_1` FOREIGN KEY (`username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `report_content_ibfk_2` FOREIGN KEY (`content_id`) REFERENCES `contents` (`content_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `report_event`
+--
+ALTER TABLE `report_event`
+  ADD CONSTRAINT `report_event_ibfk_1` FOREIGN KEY (`username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `report_event_ibfk_2` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `social_accounts`
 --
 ALTER TABLE `social_accounts`
-  ADD CONSTRAINT `social_accounts_ibfk_1` FOREIGN KEY (`username`) REFERENCES `students` (`username`);
+  ADD CONSTRAINT `social_accounts_ibfk_1` FOREIGN KEY (`username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `student_skills`
 --
 ALTER TABLE `student_skills`
-  ADD CONSTRAINT `student_skills_ibfk_1` FOREIGN KEY (`username`) REFERENCES `students` (`username`);
+  ADD CONSTRAINT `student_skills_ibfk_1` FOREIGN KEY (`username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
