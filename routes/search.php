@@ -72,10 +72,10 @@ ORDER BY score1 DESC,score2 DESC,score3 DESC
 
     $resource = new Collection($students, new StudentMiniTransformer);
     $data = $fractal->createData($resource)->toArray();
-  }
   return $response->withStatus(200)
   ->withHeader("Content-Type", "appliaction/json")
   ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+  }
 });
 
 $app->get("/search/events/{title}", function ($request, $response, $arguments) {
