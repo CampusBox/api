@@ -30,9 +30,7 @@ $app->get("/search/students/{query}", function ($request, $response, $arguments)
 
   $students = $this->spot->mapper("App\Student")->query('
 SELECT 
-students.name,
-students.username, 
-student_skills.skill_name, 
+students.*, 
 (CASE 
   WHEN (student_skills.skill_name LIKE "'.$arguments['query'].'%") 
   THEN 10 ELSE 0 END) AS score3, 
@@ -143,9 +141,7 @@ $app->get("/search/{query}", function ($request, $response, $arguments) {
 
   $students = $this->spot->mapper("App\Student")->query('
 SELECT 
-students.name,
-students.username, 
-student_skills.skill_name, 
+students.*, 
 (CASE 
   WHEN (student_skills.skill_name LIKE "'.$arguments['query'].'%") 
   THEN 10 ELSE 0 END) AS score3, 
