@@ -20,6 +20,7 @@ class ContentResponses extends \Spot\Entity {
 			"content_id" => ["type" => "integer", "unsigned" => true],
 			"username" => ["type" => "string", "required" => true],
 			"response_text" => ["type" => "string", "required" => true],
+			"status" => ["type" => "string","required"=>true],
 			"timed" => ["type" => "datetime"],
 		];
 	}
