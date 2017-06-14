@@ -210,7 +210,7 @@ $app->get("/eventsTop", function ($request, $response, $arguments) {
 	if(0){
 
 		$events = $this->spot->mapper("App\Event")
-		->where(['event_id >' => $currentCursor])
+		->where(['event_id >' => $currentCursor, "status"=>"active"])
 		->limit($limit)
 		->order(["time_created" => "DESC"]);
 	} else {
@@ -278,7 +278,7 @@ $app->get("/eventsDashboard", function ($request, $response, $arguments) {
 $app->get("/eventsImage/{event_id}", function ($request, $response, $arguments) {
 
 	$event = $this->spot->mapper("App\Event")
-	->where(["event_id"=>$arguments['event_id']])
+	->where(["event_id"=>$arguments['event_id'], "status"=>"active"])
 	->first();
 	if (false === $event) {
 		throw new NotFoundException("Event not found.", 404);
@@ -320,7 +320,7 @@ $app->get("/event/{event_id}", function ($request, $response, $arguments) {
 		return $response->withStatus(304);
 	}
 	$events = $this->spot->mapper("App\Event")
-	->where(['event_id' => $arguments['event_id']])
+	->where(['event_id' => $arguments['event_id'], "status"=>"active"])
 	->limit(1);
 	
 	/* Serialize the response data. */

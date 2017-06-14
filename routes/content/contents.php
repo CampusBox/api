@@ -139,7 +139,7 @@ $app->post("/contents", function ($request, $response, $arguments) {
 	if(count($filters)){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$filters])
+		->where(["content_type_id"=>$filters, "status"=>"active"])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}else{
@@ -183,7 +183,7 @@ $app->get("/contentsDashboard", function ($request, $response, $arguments) {
 	if(isset($arguments['content_type_id'])){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id']])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
 		->order(["timer" => "DESC"]);
 	}else{
 
@@ -225,7 +225,7 @@ $app->get("/contentsList", function ($request, $response, $arguments) {
 	if(isset($arguments['content_type_id'])){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id']])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}else{
@@ -339,7 +339,7 @@ $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $ar
 
 		$first = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id']])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
 		->order(["timer" => "DESC"])
 		->first();
 
