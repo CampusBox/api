@@ -63,6 +63,8 @@ $app->get("/contentSorted", function ($request, $response, $arguments) {
 		LEFT JOIN content_appreciates
 		ON contents.content_id = content_appreciates.content_id
 
+		WHERE contents.status LIKE 'active'
+
 		GROUP BY contents.content_id
 		ORDER BY interestScore+interScore+followScore DESC,contents.timer 
 		LIMIT 3 OFFSET 0
@@ -146,6 +148,7 @@ $app->post("/contents", function ($request, $response, $arguments) {
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
+		->where(["status"=>"active"])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}
@@ -189,6 +192,7 @@ $app->get("/contentsDashboard", function ($request, $response, $arguments) {
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
+		->where(["status"=>"active"])
 		->limit(6)
 		->order(["timer" => "DESC"]);
 	}
@@ -232,6 +236,7 @@ $app->get("/contentsList", function ($request, $response, $arguments) {
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
+		->where(["status"=>"active"])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}
@@ -306,7 +311,7 @@ $app->get("/contentsRandom", function ($request, $response, $arguments) {
 
 	
 	$contents = $this->spot->mapper("App\Content")
-	->query("SELECT * from contents ORDER BY RAND() limit 3"); 
+	->query("SELECT * from contents WHERE status LIKE 'active'  ORDER BY RAND() limit 3"); 
 
 	/* Serialize the response data. */
 	$fractal = new Manager();
@@ -347,6 +352,7 @@ $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $ar
 
 		$first = $this->spot->mapper("App\Content")
 		->all()
+		->where(["status"=>"active"])
 		->order(["timer" => "DESC"])
 		->first();
 	}
@@ -354,12 +360,13 @@ $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $ar
 	if(isset($arguments['content_type_id'])){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id']])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
 		->order(["timer" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
+		->where(["status"=>"active"])
 		->order(["timer" => "DESC"]);
 	}
 
@@ -390,7 +397,7 @@ $app->get("/content/{id}", function ($request, $response, $arguments) {
 		$test = '0';
 	/* Load existing content using provided id */
 	if (false === $content = $this->spot->mapper("App\Content")->first([
-		"content_id" => $arguments["id"],
+		"content_id" => $arguments["id"], "status" => "active",
 		])) 
 	{
 		throw new NotFoundException("Content not found.", 404);
@@ -535,7 +542,7 @@ $app->post("/addNew", function ($request, $response, $arguments) {
 $app->patch("/content/{id}", function ($request, $response, $arguments) {
 
 	/* Load existing content using provided id */
-	if (false === $content = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["id"],])) {
+	if (false === $content = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["id"],"status" => "active",])) {
 		throw new NotFoundException("Content not found.", 404);
 	};
 
