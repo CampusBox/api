@@ -86,8 +86,29 @@ $app->get("/search/events/{title}", function ($request, $response, $arguments) {
   }
   $test = isset($this->token->decoded->username)?$this->token->decoded->username:'0';
   $events = $this->spot->mapper("App\Event")->query('
-                                                    SELECT * FROM events
-                                                    WHERE title LIKE "%'.$arguments['title'].'%"
+SELECT 
+*, 
+(CASE 
+  WHEN (event_tags.name LIKE "'.$arguments['title'].'%") 
+  THEN 10 ELSE 0 END) AS score3, 
+(CASE 
+  WHEN (event_tags.name LIKE "%'.$arguments['title'].'%") 
+  THEN 10 ELSE 0 END) AS score3, 
+(CASE 
+  WHEN (events.title LIKE "%'.$arguments['title'].'%") 
+  THEN 150 ELSE 0 END) AS score1, 
+(CASE 
+  WHEN (events.title LIKE "'.$arguments['title'].'%") 
+  THEN 150 ELSE 0 END) AS score1 
+FROM events 
+LEFT JOIN event_tags 
+ON events.event_id = event_tags.event_id 
+WHERE event_tags.name LIKE "'.$arguments['title'].'%"
+OR event_tags.name LIKE "%'.$arguments['title'].'%"
+OR events.title LIKE "%'.$arguments['title'].'%"
+OR events.title LIKE "'.$arguments['title'].'%"
+GROUP BY events.event_id 
+ORDER BY score1 DESC,score3 DESC
                                                     ');
 
   if(isset($events) ){
@@ -183,9 +204,29 @@ ORDER BY score1 DESC,score2 DESC,score3 DESC
   $resourceCreativity = new Collection($creativity, new ContentMiniTransformer);
 
   $events = $this->spot->mapper("App\Event")->query('
-                                                    SELECT * FROM events
-                                                    WHERE title LIKE "'.$arguments['query'].'%"
-                                                    OR title LIKE "% '.$arguments['query'].'%"
+SELECT 
+*, 
+(CASE 
+  WHEN (event_tags.name LIKE "'.$arguments['query'].'%") 
+  THEN 10 ELSE 0 END) AS score3, 
+(CASE 
+  WHEN (event_tags.name LIKE "%'.$arguments['query'].'%") 
+  THEN 10 ELSE 0 END) AS score3, 
+(CASE 
+  WHEN (events.title LIKE "%'.$arguments['query'].'%") 
+  THEN 150 ELSE 0 END) AS score1, 
+(CASE 
+  WHEN (events.title LIKE "'.$arguments['query'].'%") 
+  THEN 150 ELSE 0 END) AS score1 
+FROM events 
+LEFT JOIN event_tags 
+ON events.event_id = event_tags.event_id 
+WHERE event_tags.name LIKE "'.$arguments['query'].'%"
+OR event_tags.name LIKE "%'.$arguments['query'].'%"
+OR events.title LIKE "%'.$arguments['query'].'%"
+OR events.title LIKE "'.$arguments['query'].'%"
+GROUP BY events.event_id 
+ORDER BY score1 DESC,score3 DESC
                                                     ');
   $resourceEvents = new Collection($events, new EventMiniTransformer(['username' => $test, 'type' => 'get']));
 
