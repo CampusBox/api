@@ -432,6 +432,8 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 	$content_type = $body['type'];
 	$content['content_type_id'] = $content_type;
 
+	$content['status'] = 'active';
+
 	$item = $this->spot->mapper("App\ContentType")
 	->query("SELECT * FROM `content_types` 
 		WHERE `content_type_id` = ".$content_type)

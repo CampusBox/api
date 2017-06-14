@@ -30,12 +30,11 @@ $app->get("/events", function ($request, $response, $arguments) {
 	$token = $JWT->decodeToken($JWT->fetchToken($request));
 	$limit = isset($_GET['limit']) ? $_GET['limit'] : 2;
 	$offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
-
 	if($token){
 		$test = $token->username;
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events` 
-			WHERE college_id = " . $token->college_id . " OR audience = 1
+			WHERE status LIKE 'active' AND (college_id = " . $token->college_id . " OR audience = 1)
 			ORDER BY CASE 
 			WHEN college_id = " . $token->college_id . " THEN college_id
 			ELSE audience
@@ -44,7 +43,7 @@ $app->get("/events", function ($request, $response, $arguments) {
 	} else {
 		$test = '0';
 		$events = $this->spot->mapper("App\Event")
-		->query("SELECT * FROM `events`
+		->query("SELECT * FROM `events` WHERE status LIKE 'active'
 			LIMIT " . $limit ." OFFSET " . $offset);
 	}
 
@@ -76,7 +75,7 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 	$token = substr($token[0], strpos($token[0], " ") + 1); 
 	$JWT = $this->get('JwtAuthentication');
 	$token = $JWT->decodeToken($JWT->fetchToken($request));
-	$limit = isset($_GET['limit']) ? $_GET['limit'] : 2;
+	$limit = isset($_GET['limit']) ? $_GET['limit'] : 4;
 	$offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
 
 	if ($token) {
@@ -88,7 +87,7 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 		}
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events` "
-			."WHERE college_id = " . $college_id . " OR audience = 1 "
+			."WHERE status LIKE 'active' AND (college_id = " . $college_id . " OR audience = 1) "
 			."ORDER BY CASE "
 			."WHEN college_id = " . $college_id . " THEN college_id "
 			."ELSE audience "
@@ -127,9 +126,10 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 $app->post("/events", function ($request, $response, $arguments) { 
 	$body = $request->getParsedBody(); 
 
-	$limit = $body['limit']; 
-	$offset = $body['offset']; 
-	$type_id =$body['filters']['type']; 
+	$limit = isset($_GET['limit']) ? $_GET['limit'] : 3;
+	$offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
+
+    $type_id =$body['filters']['type']; 
 	$audience =$body['filters']['audience']; 
 
 	$token = $request->getHeader('authorization'); 
@@ -146,14 +146,14 @@ $app->post("/events", function ($request, $response, $arguments) {
 
 		$events = $this->spot->mapper("App\Event") 
 		->all() 
-		->where(["event_type_id"=>$type_id, "audience"=>$audience]) 
+		->where(["event_type_id"=>$type_id, "audience"=>$audience, "status"=>"active"]) 
 		->limit($limit, $offset) 
 		->order(["time_created" => "DESC"]); 
 	}else{ 
 
 		$events = $this->spot->mapper("App\Event") 
 		->query("SELECT * FROM `events`  
-			WHERE college_id = " . $token->college_id . " OR audience = 1 
+			WHERE status LIKE 'active' AND (college_id = " . $token->college_id . " OR audience = 1) 
 			ORDER BY CASE  
 			WHEN college_id = " . $token->college_id . " THEN college_id 
 			ELSE audience 
@@ -200,6 +200,7 @@ $app->get("/eventsTop", function ($request, $response, $arguments) {
 	/* Use ETag and date from Event with most recent update. */
 	$first = $this->spot->mapper("App\Event")
 	->all()
+	->where(["status"=>"active"])
 	->order(["time_created" => "DESC"])
 	->first();
 
@@ -216,6 +217,7 @@ $app->get("/eventsTop", function ($request, $response, $arguments) {
 	} else {
 		$events = $this->spot->mapper("App\Event")
 		->all()
+		->where(["status"=>"active"])
 		->order(["time_created" => "DESC"]);
 	}
 
@@ -253,11 +255,12 @@ $app->get("/eventsDashboard", function ($request, $response, $arguments) {
 	if(1){
 
 		$events = $this->spot->mapper("App\Event")
-		->query("SELECT * from events ORDER BY RAND() limit 2"); 
+		->query("SELECT * from events WHERE status LIKE 'active' ORDER BY RAND() limit 2"); 
 
 	} else {
 		$events = $this->spot->mapper("App\Event")
 		->all()
+		->where(["status"=>"active"])
 		->limit($limit)
 		->order(["time_created" => "DESC"]);
 	}
@@ -278,7 +281,7 @@ $app->get("/eventsDashboard", function ($request, $response, $arguments) {
 $app->get("/eventsImage/{event_id}", function ($request, $response, $arguments) {
 
 	$event = $this->spot->mapper("App\Event")
-	->where(["event_id"=>$arguments['event_id'], "status"=>"active"])
+	->where(["event_id"=>$arguments['event_id']])
 	->first();
 	if (false === $event) {
 		throw new NotFoundException("Event not found.", 404);
@@ -310,6 +313,7 @@ $app->get("/event/{event_id}", function ($request, $response, $arguments) {
 	/* Use ETag and date from Event with most recent update. */
 	$first = $this->spot->mapper("App\Event")
 	->all()
+	->where(["status"=>"active"])
 	->order(["time_created" => "DESC"])
 	->first();
 
@@ -470,83 +474,87 @@ $app->patch("/events/{id}", function ($request, $response, $arguments) {
 		"event_id" => $arguments["id"],
 		])) {
 		throw new NotFoundException("Event not found.", 404);
-};
+    };
 
-/* PATCH requires If-Unmodified-Since or If-Match request header to be present. */
-	// if (false === $this->cache->hasStateValidator($request)) {
-	// 	throw new PreconditionRequiredException("PATCH request is required to be conditional.", 428);
-	// }
+	/* PATCH requires If-Unmodified-Since or If-Match request header to be present. */
+		// if (false === $this->cache->hasStateValidator($request)) {
+		// 	throw new PreconditionRequiredException("PATCH request is required to be conditional.", 428);
+		// }
 
-/* If-Unmodified-Since and If-Match request header handling. If in the meanwhile  */
-/* someone has modified the event respond with 412 Precondition Failed. */
-	// if (false === $this->cache->hasCurrentState($request, $event->etag(), $event->timestamp())) {
-	// 	throw new PreconditionFailedException("Event has been modified.", 412);
-	// }
+	/* If-Unmodified-Since and If-Match request header handling. If in the meanwhile  */
+	/* someone has modified the event respond with 412 Precondition Failed. */
+		// if (false === $this->cache->hasCurrentState($request, $event->etag(), $event->timestamp())) {
+		// 	throw new PreconditionFailedException("Event has been modified.", 412);
+		// }
 
-$body = $request->getParsedBody();
-$event->data($body);
-$this->spot->mapper("App\Event")->save($event);
+	$body = $request->getParsedBody();
+	$event->data($body);
+	$this->spot->mapper("App\Event")->save($event);
 
-$fractal = new Manager();
-$fractal->setSerializer(new DataArraySerializer);
-$resource = new Item($event, new EventTransformer);
-$data = $fractal->createData($resource)->toArray();
-$data["status"] = "ok";
-$data["message"] = "Event updated";
+	$fractal = new Manager();
+	$fractal->setSerializer(new DataArraySerializer);
+	$resource = new Item($event, new EventTransformer);
+	$data = $fractal->createData($resource)->toArray();
+	$data["status"] = "ok";
+	$data["message"] = "Event updated";
 
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+	return $response->withStatus(200)
+	->withHeader("Content-Type", "application/json")
+	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 $app->put("/events/{id}", function ($request, $response, $arguments) {
+    
+    $token = $request->getHeader('authorization');
+	$token = substr($token[0], strpos($token[0], " ") + 1); 
+	$JWT = $this->get('JwtAuthentication');
+	$token = $JWT->decodeToken($JWT->fetchToken($request));
 
-	/* Check if token has needed scope. */
-	if (true === $this->token->hasScope(["event.all", "event.update"])) {
-		throw new ForbiddenException("Token not allowed to update events.", 403);
+	if (!$token) {
+		throw new ForbiddenException("Token not found", 401);
 	}
 
 	/* Load existing event using provided id */
 	if (false === $event = $this->spot->mapper("App\Event")->first([
-		"id" => $arguments["id"],
+		"event_id" => $arguments["id"], "status" => "active",
 		])) {
-		throw new NotFoundException("Event not found.", 404);
-};
+			throw new NotFoundException("Event not found.", 404);
+	};
 
-/* PUT requires If-Unmodified-Since or If-Match request header to be present. */
-if (false === $this->cache->hasStateValidator($request)) {
-	throw new PreconditionRequiredException("PUT request is required to be conditional.", 428);
-}
+	if ($event->created_by_username != $token->username) {
+		throw new ForbiddenException("Only the owner can delete the event", 404);
+	}
 
-/* If-Unmodified-Since and If-Match request header handling. If in the meanwhile  */
-/* someone has modified the event respond with 412 Precondition Failed. */
-if (false === $this->cache->hasCurrentState($request, $event->etag(), $event->timestamp())) {
-	throw new PreconditionFailedException("Event has been modified.", 412);
-}
+	/* If-Unmodified-Since and If-Match request header handling. If in the meanwhile  */
+	/* someone has modified the event respond with 412 Precondition Failed. */
+	if (false === $this->cache->hasCurrentState($request, $event->etag(), $event->timestamp())) {
+		throw new PreconditionFailedException("Event has been modified.", 412);
+	}
 
-$body = $request->getParsedBody();
+	$body = $request->getParsedBody();
 
-/* PUT request assumes full representation. If any of the properties is */
-/* missing set them to default values by clearing the event object first. */
-$event->clear();
-$event->data($body);
-$this->spot->mapper("App\Event")->save($event);
+	/* PUT request assumes full representation. If any of the properties is */
+	/* missing set them to default values by clearing the event object first. */
+	$event->clear();
+	$event->data($body);
+	$this->spot->mapper("App\Event")->save($event);
 
-/* Add Last-Modified and ETag headers to response. */
-$response = $this->cache->withEtag($response, $event->etag());
-$response = $this->cache->withLastModified($response, $event->timestamp());
+	/* Add Last-Modified and ETag headers to response. */
+	$response = $this->cache->withEtag($response, $event->etag());
+	$response = $this->cache->withLastModified($response, $event->timestamp());
 
-$fractal = new Manager();
-$fractal->setSerializer(new DataArraySerializer);
-$resource = new Item($event, new EventTransformer);
-$data = $fractal->createData($resource)->toArray();
-$data["status"] = "ok";
-$data["message"] = "Event updated";
+	$fractal = new Manager();
+	$fractal->setSerializer(new DataArraySerializer);
+	$resource = new Item($event, new EventTransformer);
+	$data = $fractal->createData($resource)->toArray();
+	$data["status"] = "ok";
+	$data["message"] = "Event updated";
 
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+	return $response->withStatus(200)
+	->withHeader("Content-Type", "application/json")
+	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
+
 
 $app->delete("/delEvent/{event_id}", function ($request, $response, $arguments) {
 
