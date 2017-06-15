@@ -111,11 +111,11 @@ $app->delete("/contentResponse/{content_response_id}", function ($request, $resp
     "username" =>  $this->token->decoded->username, "status" => 0
     ])) {
     throw new NotFoundException("Response wasn't there.", 404);
-  }
+}
 
-  if ( $contentresponse->username != $token->username)  {
-    throw new ForbiddenException("Only the owner can delete the response", 404);
-  }
+if ( $contentresponse->username != $token->username)  {
+  throw new ForbiddenException("Only the owner can delete the response", 404);
+}
 
   $update_response = $this->spot->mapper("App\ContentResponses")->first(["content_response_id" => $arguments["content_response_id"]]);
 
@@ -134,10 +134,8 @@ $app->delete("/contentResponse/{content_response_id}", function ($request, $resp
 
 $app->patch("/contentResponse/{content_response_id}", function ($request, $response, $arguments) {
 
-  $token = $request->getHeader('authorization');
-  $token = substr($token[0], strpos($token[0], " ") + 1);  
-  $JWT = $this->get('JwtAuthentication');
-  $token = $JWT->decodeToken($JWT->fetchToken($request));
+ $contentresponse['username'] =  $this->token->decoded->username;
+ $contentresponse['content_response_id'] = $arguments['content_response_id'];
 
   if (!$token) {
     throw new ForbiddenException("Token not found", 404);
