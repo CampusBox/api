@@ -1,13 +1,12 @@
 <?php
 
-
-
 use App\Event;
 use App\EventTransformer;
 use App\Content;
 use App\ContentTransformer;
 use App\ContentMiniTransformer;
 use App\EventMiniTransformer;
+use App\StudentSearchTransformer;
 use App\StudentMiniTransformer;
 use Exception\ForbiddenException;
 use Exception\NotFoundException;
@@ -68,7 +67,7 @@ ORDER BY score1 DESC,score2 DESC,score3 DESC
 
     $fractal->setSerializer(new DataArraySerializer);
 
-    $resource = new Collection($students, new StudentMiniTransformer);
+    $resource = new Collection($students, new StudentSearchTransformer);
     $data = $fractal->createData($resource)->toArray();
   return $response->withStatus(200)
   ->withHeader("Content-Type", "appliaction/json")
@@ -193,7 +192,7 @@ OR students.username LIKE "'.$arguments['query'].'%"
 GROUP BY students.username 
 ORDER BY score1 DESC,score2 DESC,score3 DESC
                                                         ');
-  $resourceStudents = new Collection($students, new StudentMiniTransformer);
+  $resourceStudents = new Collection($students, new StudentSearchTransformer);
 
   $creativity = $this->spot->mapper("App\Content")->query('
                                                           SELECT * FROM contents
