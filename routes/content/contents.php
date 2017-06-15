@@ -63,7 +63,7 @@ $app->get("/contentSorted", function ($request, $response, $arguments) {
 		LEFT JOIN content_appreciates
 		ON contents.content_id = content_appreciates.content_id
 
-		WHERE contents.status LIKE 'active'
+		WHERE contents.status = 0
 
 		GROUP BY contents.content_id
 		ORDER BY interestScore+interScore+followScore DESC,contents.timer 
@@ -93,12 +93,12 @@ $app->get("/contents[/{content_type_id}]", function ($request, $response, $argum
 	if(isset($arguments['content_type_id'])){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
 		->order(["timer" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
-		->where(["status"=>"active"])
+		->where(["status"=>0])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}
@@ -141,14 +141,14 @@ $app->post("/contents", function ($request, $response, $arguments) {
 	if(count($filters)){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$filters, "status"=>"active"])
+		->where(["content_type_id"=>$filters, "status"=>0])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["status"=>"active"])
+		->where(["status"=>0])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}
@@ -186,13 +186,13 @@ $app->get("/contentsDashboard", function ($request, $response, $arguments) {
 	if(isset($arguments['content_type_id'])){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
 		->order(["timer" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["status"=>"active"])
+		->where(["status"=>0])
 		->limit(6)
 		->order(["timer" => "DESC"]);
 	}
@@ -229,14 +229,14 @@ $app->get("/contentsList", function ($request, $response, $arguments) {
 	if(isset($arguments['content_type_id'])){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["status"=>"active"])
+		->where(["status"=>0])
 		->limit($limit, $offset)
 		->order(["timer" => "DESC"]);
 	}
@@ -311,7 +311,7 @@ $app->get("/contentsRandom", function ($request, $response, $arguments) {
 
 	
 	$contents = $this->spot->mapper("App\Content")
-	->query("SELECT * from contents WHERE status LIKE 'active'  ORDER BY RAND() limit 3"); 
+	->query("SELECT * from contents WHERE status = 0  ORDER BY RAND() limit 3"); 
 
 	/* Serialize the response data. */
 	$fractal = new Manager();
@@ -344,7 +344,7 @@ $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $ar
 
 		$first = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
 		->order(["timer" => "DESC"])
 		->first();
 
@@ -352,7 +352,7 @@ $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $ar
 
 		$first = $this->spot->mapper("App\Content")
 		->all()
-		->where(["status"=>"active"])
+		->where(["status"=>0])
 		->order(["timer" => "DESC"])
 		->first();
 	}
@@ -360,13 +360,13 @@ $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $ar
 	if(isset($arguments['content_type_id'])){
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>"active"])
+		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
 		->order(["timer" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
-		->where(["status"=>"active"])
+		->where(["status"=>0])
 		->order(["timer" => "DESC"]);
 	}
 
@@ -397,7 +397,7 @@ $app->get("/content/{id}", function ($request, $response, $arguments) {
 		$test = '0';
 	/* Load existing content using provided id */
 	if (false === $content = $this->spot->mapper("App\Content")->first([
-		"content_id" => $arguments["id"], "status" => "active",
+		"content_id" => $arguments["id"], "status" => 0,
 		])) 
 	{
 		throw new NotFoundException("Content not found.", 404);
@@ -432,7 +432,7 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 	$content_type = $body['type'];
 	$content['content_type_id'] = $content_type;
 
-	$content['status'] = 'active';
+	$content['status'] = 0;
 
 	$item = $this->spot->mapper("App\ContentType")
 	->query("SELECT * FROM `content_types` 
@@ -544,7 +544,7 @@ $app->post("/addNew", function ($request, $response, $arguments) {
 $app->patch("/content/{id}", function ($request, $response, $arguments) {
 
 	/* Load existing content using provided id */
-	if (false === $content = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["id"],"status" => "active",])) {
+	if (false === $content = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["id"],"status" => 0,])) {
 		throw new NotFoundException("Content not found.", 404);
 	};
 
@@ -585,14 +585,14 @@ $app->delete("/delContent/{content_id}", function ($request, $response, $argumen
 		throw new ForbiddenException("Only the owner can delete the content", 404);
 	}
 
-	if ($content->status === "inactive") {
+	if ($content->status === 1) {
 		throw new ForbiddenException("Content already removed", 404);
 	}
 
 	$update_status = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["content_id"]]);
 
 	if ($update_status) {
-		$update_status->status = "inactive";
+		$update_status->status = 1;
 		$this->spot->mapper("App\Content")->update($update_status);
 	}
 	$data["status"] = "ok";
@@ -611,7 +611,7 @@ $app->post("/newDraftContent", function ($request, $response, $arguments) {
 	$content['title'] = $body['title'];
 	$content['content_type_id'] = $body['type'];
 	
-	$content['status'] = "draft";
+	$content['status'] = 2;
 
 	$newContent = new Content($content);
 	$this->spot->mapper("App\Content")->save($newContent);
@@ -667,14 +667,14 @@ $app->delete("/movetoDraftContent/{content_id}", function ($request, $response, 
 		throw new ForbiddenException("Only the owner can move the content to draft", 404);
 	}
 
-	if ($content->status === "draft") {
+	if ($content->status === 2) {
 		throw new ForbiddenException("Content already moved to draft", 404);
 	}
 
 	$update_status = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["content_id"]]);
 
 	if ($update_status) {
-		$update_status->status = "draft";
+		$update_status->status = 2;
 		$this->spot->mapper("App\Content")->update($update_status);
 	}
 	$data["status"] = "ok";
@@ -696,7 +696,7 @@ $app->post("/editDraftContent/{content_id}", function ($request, $response, $arg
 	$update_content->title = $body['title'];
 	$update_content->content_type_id = $body['type'];
 
-	$update_content->status = "active";
+	$update_content->status = 1;
 
 	$this->spot->mapper("App\Content")->update($update_content);
 	}

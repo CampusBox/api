@@ -37,12 +37,12 @@ $app->get("/responses/{content_id}", function ($request, $response, $arguments) 
 
   if(isset($arguments['content_id'])){
     $responses = $this->spot->mapper("App\ContentResponses")
-    ->where(["content_id"=>$arguments['content_id'], "status"=>"active"])
+    ->where(["content_id"=>$arguments['content_id'], "status"=>0])
     ->limit($limit, $offset);
   }else{
 
     $responses = $this->spot->mapper("App\ContentResponses")
-    ->where(["status"=>"active"])
+    ->where(["status"=>0])
     ->limit($limit, $offset);
   }
   $offset += $limit;
@@ -76,7 +76,7 @@ $app->post("/contentResponse/{content_id}", function ($request, $response, $argu
    $contentresponse['username'] =  $this->token->decoded->username;
    $contentresponse['content_id'] = $arguments['content_id'];
    $contentresponse['response_text'] = $body['response_text'];
-   $contentresponse['status'] = "active";
+   $contentresponse['status'] = 0;
 
    $newresponse = new ContentResponses($contentresponse);
    $this->spot->mapper("App\ContentResponses")->save($newresponse);
@@ -108,7 +108,7 @@ $app->delete("/contentResponse/{content_response_id}", function ($request, $resp
   }
   if (false === $contentresponse = $this->spot->mapper("App\ContentResponses")->first([
     "content_response_id" => $arguments["content_response_id"],
-    "username" =>  $this->token->decoded->username, "status" => "active"
+    "username" =>  $this->token->decoded->username, "status" => 0
     ])) {
     throw new NotFoundException("Response wasn't there.", 404);
   }
@@ -120,7 +120,7 @@ $app->delete("/contentResponse/{content_response_id}", function ($request, $resp
   $update_response = $this->spot->mapper("App\ContentResponses")->first(["content_response_id" => $arguments["content_response_id"]]);
 
   if ($update_response) {
-    $update_response->status = 'inactive';
+    $update_response->status = 1;
     $status = $this->spot->mapper("App\ContentResponses")->update($update_response);
   }
 
@@ -144,7 +144,7 @@ $app->patch("/contentResponse/{content_response_id}", function ($request, $respo
   }
   if (false === $contentresponse = $this->spot->mapper("App\ContentResponses")->first([
     "content_response_id" => $arguments["content_response_id"],
-    "username" =>  $this->token->decoded->username, "status" => "active"
+    "username" =>  $this->token->decoded->username, "status" => 0
     ])) {
     throw new NotFoundException("Response wasn't there.", 404);
   }

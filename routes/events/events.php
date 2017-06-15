@@ -556,7 +556,7 @@ $app->put("/events/{id}", function ($request, $response, $arguments) {
 });
 
 
-$app->delete("/delEvent/{event_id}", function ($request, $response, $arguments) {
+$app->delete("/events/{event_id}", function ($request, $response, $arguments) {
 
 	$token = $request->getHeader('authorization');
 	$token = substr($token[0], strpos($token[0], " ") + 1); 
