@@ -116,7 +116,7 @@ ORDER BY score1 DESC,score3 DESC
 
     $fractal->setSerializer(new DataArraySerializer);
 
-    $resource = new Collection($events, new EventTransformer(['username' => $test, 'type' => 'get']));
+    $resource = new Collection($events, new EventMiniTransformer(['username' => $test, 'type' => 'get']));
     $data = $fractal->createData($resource)->toArray();
   }
   return $response->withStatus(200)
