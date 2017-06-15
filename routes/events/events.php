@@ -34,7 +34,7 @@ $app->get("/events", function ($request, $response, $arguments) {
 		$test = $token->username;
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events` 
-			WHERE status LIKE 'active' AND (college_id = " . $token->college_id . " OR audience = 1)
+			WHERE status = 0 AND (college_id = " . $token->college_id . " OR audience = 1)
 			ORDER BY CASE 
 			WHEN college_id = " . $token->college_id . " THEN college_id
 			ELSE audience
@@ -43,7 +43,7 @@ $app->get("/events", function ($request, $response, $arguments) {
 	} else {
 		$test = '0';
 		$events = $this->spot->mapper("App\Event")
-		->query("SELECT * FROM `events` WHERE status LIKE 'active'
+		->query("SELECT * FROM `events` WHERE status = 0
 			LIMIT " . $limit ." OFFSET " . $offset);
 	}
 
@@ -87,7 +87,7 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 		}
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events` "
-			."WHERE status LIKE 'active' AND (college_id = " . $college_id . " OR audience = 1) "
+			."WHERE status = 0 AND (college_id = " . $college_id . " OR audience = 1) "
 			."ORDER BY CASE "
 			."WHEN college_id = " . $college_id . " THEN college_id "
 			."ELSE audience "
@@ -97,7 +97,7 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 		$college_id = 0; //Not sure. Should work without this.
 		$test = '0';
 		$events = $this->spot->mapper("App\Event")
-		->where(["status"=>"active"])		
+		->where(["status"=>0])		
 		->query("SELECT * FROM `events`
 			LIMIT " . $limit ." OFFSET " . $offset);
 	}
@@ -146,14 +146,14 @@ $app->post("/events", function ($request, $response, $arguments) {
 
 		$events = $this->spot->mapper("App\Event") 
 		->all() 
-		->where(["event_type_id"=>$type_id, "audience"=>$audience, "status"=>"active"]) 
+		->where(["event_type_id"=>$type_id, "audience"=>$audience, "status"=>0]) 
 		->limit($limit, $offset) 
 		->order(["time_created" => "DESC"]); 
 	}else{ 
 
 		$events = $this->spot->mapper("App\Event") 
 		->query("SELECT * FROM `events`  
-			WHERE status LIKE 'active' AND (college_id = " . $token->college_id . " OR audience = 1) 
+			WHERE status = 0 AND (college_id = " . $token->college_id . " OR audience = 1) 
 			ORDER BY CASE  
 			WHEN college_id = " . $token->college_id . " THEN college_id 
 			ELSE audience 
@@ -200,7 +200,7 @@ $app->get("/eventsTop", function ($request, $response, $arguments) {
 	/* Use ETag and date from Event with most recent update. */
 	$first = $this->spot->mapper("App\Event")
 	->all()
-	->where(["status"=>"active"])
+	->where(["status"=>0])
 	->order(["time_created" => "DESC"])
 	->first();
 
@@ -211,13 +211,13 @@ $app->get("/eventsTop", function ($request, $response, $arguments) {
 	if(0){
 
 		$events = $this->spot->mapper("App\Event")
-		->where(['event_id >' => $currentCursor, "status"=>"active"])
+		->where(['event_id >' => $currentCursor, "status"=> 0])
 		->limit($limit)
 		->order(["time_created" => "DESC"]);
 	} else {
 		$events = $this->spot->mapper("App\Event")
 		->all()
-		->where(["status"=>"active"])
+		->where(["status"=>0])
 		->order(["time_created" => "DESC"]);
 	}
 
@@ -255,12 +255,12 @@ $app->get("/eventsDashboard", function ($request, $response, $arguments) {
 	if(1){
 
 		$events = $this->spot->mapper("App\Event")
-		->query("SELECT * from events WHERE status LIKE 'active' ORDER BY RAND() limit 2"); 
+		->query("SELECT * from events WHERE status = 0 ORDER BY RAND() limit 2"); 
 
 	} else {
 		$events = $this->spot->mapper("App\Event")
 		->all()
-		->where(["status"=>"active"])
+		->where(["status"=> 0])
 		->limit($limit)
 		->order(["time_created" => "DESC"]);
 	}
@@ -313,7 +313,7 @@ $app->get("/event/{event_id}", function ($request, $response, $arguments) {
 	/* Use ETag and date from Event with most recent update. */
 	$first = $this->spot->mapper("App\Event")
 	->all()
-	->where(["status"=>"active"])
+	->where(["status"=>0])
 	->order(["time_created" => "DESC"])
 	->first();
 
@@ -324,7 +324,7 @@ $app->get("/event/{event_id}", function ($request, $response, $arguments) {
 		return $response->withStatus(304);
 	}
 	$events = $this->spot->mapper("App\Event")
-	->where(['event_id' => $arguments['event_id'], "status"=>"active"])
+	->where(['event_id' => $arguments['event_id'], "status"=>0])
 	->limit(1);
 	
 	/* Serialize the response data. */
@@ -429,7 +429,7 @@ $app->post("/addEvent", function ($request, $response, $arguments) {
 	$event['city'] = $body['event']['city'];
 	$event['state'] = isset($body['event']['state'])?:null;
 
-	$event['status'] = "active";
+	$event['status'] = 0;
 
 	$newEvent = new Event($event);
 	$this->spot->mapper("App\Event")->save($newEvent);
@@ -516,7 +516,7 @@ $app->put("/events/{id}", function ($request, $response, $arguments) {
 
 	/* Load existing event using provided id */
 	if (false === $event = $this->spot->mapper("App\Event")->first([
-		"event_id" => $arguments["id"], "status" => "active",
+		"event_id" => $arguments["id"], "status" => 0,
 		])) {
 			throw new NotFoundException("Event not found.", 404);
 	};
@@ -577,14 +577,14 @@ $app->delete("/delEvent/{event_id}", function ($request, $response, $arguments) 
 		throw new ForbiddenException("Only the owner can delete the event", 404);
 	}
 
-	if ($event->status === "inactive") {
+	if ($event->status === 1) {
 		throw new ForbiddenException("Event already removed", 404);
 	}
 
 	$update_status = $this->spot->mapper("App\Event")->first(["event_id" => $arguments["event_id"]]);
 
 	if ($update_status) {
-		$update_status->status = "inactive";
+		$update_status->status = 1;
 		$this->spot->mapper("App\Event")->update($update_status);
 	}
 	$data["status"] = "ok";
@@ -624,7 +624,7 @@ $app->post("/newDraftEvent", function ($request, $response, $arguments) {
 	$event['city'] = $body['event']['city'];
 	$event['state'] = isset($body['event']['state'])?:null;
 
-	$event['status'] = "draft";
+	$event['status'] = 2;
 
 	$newEvent = new Event($event);
 	$this->spot->mapper("App\Event")->save($newEvent);
@@ -669,14 +669,14 @@ $app->delete("/movetoDraftEvent/{event_id}", function ($request, $response, $arg
 		throw new ForbiddenException("Only the owner can move the event to draft", 404);
 	}
 
-	if ($event->status === "draft") {
+	if ($event->status === 2) {
 		throw new ForbiddenException("Event already moved to draft", 404);
 	}
 
 	$update_status = $this->spot->mapper("App\Event")->first(["event_id" => $arguments["event_id"]]);
 
 	if ($update_status) {
-		$update_status->status = "draft";
+		$update_status->status = 2;
 		$this->spot->mapper("App\Event")->update($update_status);
 	}
 	$data["status"] = "ok";
@@ -722,7 +722,7 @@ $app->post("/editDraftEvent/{event_id}", function ($request, $response, $argumen
 		$update_event->city = $body['event']['city'];
 		$update_event->state = isset($body['event']['state'])?:null;
 
-		$update_event->status = "active";
+		$update_event->status = 0;
 
 		$this->spot->mapper("App\Event")->update($update_event);
 	}
