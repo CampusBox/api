@@ -111,11 +111,11 @@ $app->delete("/contentResponse/{content_response_id}", function ($request, $resp
     "username" =>  $this->token->decoded->username, "status" => 0
     ])) {
     throw new NotFoundException("Response wasn't there.", 404);
-  }
+}
 
-  if ( $contentresponse->username != $token->username)  {
-    throw new ForbiddenException("Only the owner can delete the response", 404);
-  }
+if ( $contentresponse->username != $token->username)  {
+  throw new ForbiddenException("Only the owner can delete the response", 404);
+}
 
   $update_response = $this->spot->mapper("App\ContentResponses")->first(["content_response_id" => $arguments["content_response_id"]]);
 
