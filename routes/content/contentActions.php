@@ -155,14 +155,11 @@ $app->patch("/contentResponse/{content_response_id}", function ($request, $respo
 
   $body = $request->getParsedBody();
 
-  $contentresponse['username'] =  $this->token->decoded->username;
-  $contentresponse['content_response_id'] = $arguments['content_response_id'];
-
   $update_response = $this->spot->mapper("App\ContentResponses")->first(["content_response_id" => $arguments["content_response_id"]]);
 
   if ($update_response) {
     $data["orig"] = $update_response->response_text;
-    $update_response->response_text = $body['response'];
+    $update_response->response_text = $body['response_text'];
     $data["new"] = $update_response->response_text;
     $status = $this->spot->mapper("App\ContentResponses")->update($update_response);
   }
