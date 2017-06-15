@@ -137,18 +137,11 @@ $app->patch("/contentResponse/{content_response_id}", function ($request, $respo
  $contentresponse['username'] =  $this->token->decoded->username;
  $contentresponse['content_response_id'] = $arguments['content_response_id'];
 
-  if (!$token) {
-    throw new ForbiddenException("Token not found", 404);
-  }
   if (false === $contentresponse = $this->spot->mapper("App\ContentResponses")->first([
     "content_response_id" => $arguments["content_response_id"],
     "username" =>  $this->token->decoded->username, "status" => 0
     ])) {
     throw new NotFoundException("Response wasn't there.", 404);
-  }
-
-  if ( $contentresponse->username != $token->username)  {
-    throw new ForbiddenException("Only the owner can update the response", 404);
   }
 
   $body = $request->getParsedBody();
@@ -193,7 +186,7 @@ $app->post("/bookmarkContent/{content_id}", function ($request, $response, $argu
 $data["status"] = "ok";
 $data["message"] = "New bookmark created";
 
-return $bookmark->withStatus(201)
+return $response->withStatus(201)
 ->withHeader("Content-Type", "application/json")
 ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
