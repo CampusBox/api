@@ -134,10 +134,8 @@ if ( $contentresponse->username != $token->username)  {
 
 $app->patch("/contentResponse/{content_response_id}", function ($request, $response, $arguments) {
 
-  $token = $request->getHeader('authorization');
-  $token = substr($token[0], strpos($token[0], " ") + 1);  
-  $JWT = $this->get('JwtAuthentication');
-  $token = $JWT->decodeToken($JWT->fetchToken($request));
+ $contentresponse['username'] =  $this->token->decoded->username;
+ $contentresponse['content_response_id'] = $arguments['content_response_id'];
 
   if (!$token) {
     throw new ForbiddenException("Token not found", 404);
