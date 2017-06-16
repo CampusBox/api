@@ -502,39 +502,47 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 
 $app->post("/addNew", function ($request, $response, $arguments) {
 	$body = $request->getParsedBody();
+	if(!$this->token->decoded->college_id){
+		$this->token->decoded->college_id=0;
+	}
 
+	$content['status'] =  0;
+	$content['view_type'] =  1;
 	$content['created_by_username'] =  $this->token->decoded->username;
 	$content['college_id'] =  $this->token->decoded->college_id;
 	$content['title'] = $body['title'];
 	$content['content_type_id'] = $body['type'];
 	
 	$newContent = new Content($content);
-	$this->spot->mapper("App\Content")->save($newContent);
+	$data['newContent'] = $newContent;
+	$wasAdded = $this->spot->mapper("App\Content")->save($newContent);
+	if($wasAdded){
 
-	$fractal = new Manager();
-	$fractal->setSerializer(new DataArraySerializer);
-	$resource = new Item($newContent, new ContentTransformer);
-	$data = $fractal->createData($resource)->toArray();
+		$fractal = new Manager();
+		$fractal->setSerializer(new DataArraySerializer);
+		$resource = new Item($newContent, new ContentTransformer);
+		$data = $fractal->createData($resource)->toArray();
 			//adding interests 
 
-	for ($i=0; $i < count($body['items']); $i++) {
-		$items['content_id'] = $data['data']['content_id'];
-		$items['description'] = isset($body['items'][$i]['text'])?$body['items'][$i]['text']:"";
-		$items['content_item_type'] = $body['items'][$i]['mediaType'];
-		$items['image'] = isset($body['items'][$i]['image'])?$body['items'][$i]['image']:"";
-		$items['embed_url'] = isset($body['items'][$i]['embedUrl'])?$body['items'][$i]['embedUrl']:"";
-		$itemsElement = new ContentItems($items);
-		$this->spot->mapper("App\ContentItems")->save($itemsElement);
-	}
-	for ($i=0; $i < count($body['tags']); $i++) {
-		$tags['content_id'] = $data['data']['content_id'];
-		$tags['name'] = $body['tags'][$i]['name'];
-		$tagsElement = new ContentTags($tags);
-		$this->spot->mapper("App\ContentTags")->save($tagsElement);
+		for ($i=0; $i < count($body['items']); $i++) {
+			$items['content_id'] = $newContent->content_id;
+			$items['description'] = isset($body['items'][$i]['text'])?$body['items'][$i]['text']:"";
+			$items['content_item_type'] = $body['items'][$i]['mediaType'];
+			$items['image'] = isset($body['items'][$i]['image'])?$body['items'][$i]['image']:"";
+			$items['embed_url'] = isset($body['items'][$i]['embedUrl'])?$body['items'][$i]['embedUrl']:"";
+			$itemsElement = new ContentItems($items);
+			$this->spot->mapper("App\ContentItems")->save($itemsElement);
+		}
+		for ($i=0; $i < count($body['tags']); $i++) {
+			$tags['content_id'] = $data['data']['content_id'];
+			$tags['name'] = $body['tags'][$i]['name'];
+			$tagsElement = new ContentTags($tags);
+			$this->spot->mapper("App\ContentTags")->save($tagsElement);
+		}
 	}
 
 	/* Serialize the response data. */
-	$data["status"] = true;
+	$data["status"] = $wasAdded;
 	$data["message"] = 'Added Successfully';
 	return $response->withStatus(201)
 	->withHeader("Content-Type", "application/json")
@@ -691,14 +699,14 @@ $app->post("/editDraftContent/{content_id}", function ($request, $response, $arg
 	$update_content = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["content_id"]]);
 	if ($update_content) {
 
-	$update_content->created_by_username =  $this->token->decoded->username;
-	$update_content->college_id =  $this->token->decoded->college_id;
-	$update_content->title = $body['title'];
-	$update_content->content_type_id = $body['type'];
+		$update_content->created_by_username =  $this->token->decoded->username;
+		$update_content->college_id =  $this->token->decoded->college_id;
+		$update_content->title = $body['title'];
+		$update_content->content_type_id = $body['type'];
 
-	$update_content->status = 1;
+		$update_content->status = 1;
 
-	$this->spot->mapper("App\Content")->update($update_content);
+		$this->spot->mapper("App\Content")->update($update_content);
 	}
 
 	$fractal = new Manager();
