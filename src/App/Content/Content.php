@@ -11,12 +11,12 @@ class Content extends \Spot\Entity {
 		return [
 		"content_id" => ["type" => "integer", "unsigned" => true, "primary" => true, "autoincrement" => true],
 		"created_by_username" => ["type" => "string", "required" => true],
-		"college_id" => ["type" => "integer", "required" => true],
+		"college_id" => ["type" => "integer", 'default' => 0],
 		"content_type_id" => ["type" => "integer", "required" => true],
-		"view_type" => ["type" => "integer", "required" => true],
+		"view_type" => ["type" => "integer", 'default' => 1],
 		"title" => ["type" => "string", "required" => true],
 		"timer" => ["type" => "string"],
-		"status" => ["type" => "integer"]
+		"status" => ["type" => "integer",'default' => 0]
 		];
 	}
 	public static function contents(EventEmitter $emitter) {

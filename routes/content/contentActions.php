@@ -124,6 +124,13 @@ if ( $contentresponse->username != $token->username)  {
     $status = $this->spot->mapper("App\ContentResponses")->update($update_response);
   }
 
+  $update_response = $this->spot->mapper("App\ContentResponses")->first(["content_response_id" => $arguments["content_response_id"]]);
+
+  if ($update_response) {
+    $update_response->status = 1;
+    $status = $this->spot->mapper("App\ContentResponses")->update($update_response);
+  }
+
   $data["status"] = $status;
   $data["message"] = "Response updated.";
   return $response->withStatus(201)
@@ -134,8 +141,10 @@ if ( $contentresponse->username != $token->username)  {
 
 $app->patch("/contentResponse/{content_response_id}", function ($request, $response, $arguments) {
 
- $contentresponse['username'] =  $this->token->decoded->username;
- $contentresponse['content_response_id'] = $arguments['content_response_id'];
+  $token = $request->getHeader('authorization');
+  $token = substr($token[0], strpos($token[0], " ") + 1);  
+  $JWT = $this->get('JwtAuthentication');
+  $token = $JWT->decodeToken($JWT->fetchToken($request));
 
   if (false === $contentresponse = $this->spot->mapper("App\ContentResponses")->first([
     "content_response_id" => $arguments["content_response_id"],

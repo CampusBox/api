@@ -99,6 +99,7 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 		$events = $this->spot->mapper("App\Event")
 		->where(["status"=>0])		
 		->query("SELECT * FROM `events`
+			WHERE status = 0
 			LIMIT " . $limit ." OFFSET " . $offset);
 	}
 
