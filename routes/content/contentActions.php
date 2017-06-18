@@ -20,19 +20,20 @@ use Tuupola\Base62;
 
 
 /**
- * Gets res
+ * Gets 'limit' number of responses of given content showing latest first
+ * Arguments: content_id - Id of the content you want to fetch responses of
+ *            limit (optional default-3) - The number of responses you want to get
+ *            offset (optional default-0) - The offset after which the responses are needed
  */
 $app->get("/responses/{content_id}", function ($request, $response, $arguments) {
 
   $limit = isset($_GET['limit']) ? $_GET['limit'] : 3;
   $offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
 
-  if(isset($arguments['content_id'])){
-    $responses = $this->spot->mapper("App\ContentResponses")
-    ->where(["content_id"=>$arguments['content_id'], "status"=>0])
-    ->limit($limit, $offset)
-    ->order(["content_response_id" => "DESC"]);
-  }
+  $responses = $this->spot->mapper("App\ContentResponses")
+  ->where(["content_id"=>$arguments['content_id'], "status"=>0])
+  ->limit($limit, $offset)
+  ->order(["content_response_id" => "DESC"]);
 
   $offset += $limit;
 
@@ -51,7 +52,14 @@ $app->get("/responses/{content_id}", function ($request, $response, $arguments) 
   ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-
+/**
+ * Adds a new response to the content with given id
+ * Arguments: content_id- Id of the content you want to add response to
+ * 
+ * Body: response_text [type: String] - The comment you want to add
+ *
+ * Token is compulsary for this
+ */
 $app->post("/contentResponse/{content_id}", function ($request, $response, $arguments) {
 
  $body = $request->getParsedBody();
@@ -105,7 +113,14 @@ else{
 }
 });
 
-
+/**
+ * Deactivates the given response (Set status to 1 i.e Inactive)
+ * Arguments: content_response_id - Id of the response you want to deactivate
+ *
+ * Token is required for this action
+ * 
+ * Only the owner of the comment can perform this action
+ */
 $app->delete("/contentResponse/{content_response_id}", function ($request, $response, $arguments) {
 
   $token = $request->getHeader('authorization');
@@ -121,10 +136,6 @@ $app->delete("/contentResponse/{content_response_id}", function ($request, $resp
                                                                                       "username" =>  $this->token->decoded->username, "status" => 0
                                                                                       ])) {
     throw new NotFoundException("Response wasn't there.", 404);
-}
-
-if ( $contentresponse->username != $token->username)  {
-  throw new ForbiddenException("Only the owner can delete the response", 404);
 }
 
 $update_response = $this->spot->mapper("App\ContentResponses")->first(["content_response_id" => $arguments["content_response_id"]]);
@@ -148,7 +159,16 @@ return $response->withStatus(201)
 ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-
+/**
+ * Updates an existing response
+ * Arguments: content_response_id- Id of the response you want to edit
+ * 
+ * Body: response_text [type: String] - The response you want to edit
+ *
+ * Token is compulsary for this
+ *
+ * Only the owner of the response can perform this action
+ */
 $app->patch("/contentResponse/{content_response_id}", function ($request, $response, $arguments) {
 
   $token = $request->getHeader('authorization');
