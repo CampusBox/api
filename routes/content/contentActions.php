@@ -40,12 +40,8 @@ $app->get("/responses/{content_id}", function ($request, $response, $arguments) 
   $fractal = new Manager();
   $fractal->setSerializer(new DataArraySerializer);
 
-  if ($responses && sizeof($responses) > 0) {
-    $resource = new Collection($responses, new ContentResponsesTransformer());
-    $data = $fractal->createData($resource)->toArray();
-  } else{
-    $data['data'] = [];
-  }
+  $resource = new Collection($responses, new ContentResponsesTransformer());
+  $data = $fractal->createData($resource)->toArray();
 
   $data['meta']['offset'] = $offset;
   $data['meta']['limit'] = $limit;
@@ -81,7 +77,7 @@ $app->post("/contentResponse/{content_id}", function ($request, $response, $argu
 
      $data["status"] = "ok";
      $data["message"] = "Response added";
-     
+
      $resource = new Collection($entity, new ContentResponsesTransformer());
      $data["response"] = $fractal->createData($resource)->toArray()['data'][0];
 
