@@ -564,7 +564,7 @@ $app->patch("/content/{id}", function ($request, $response, $arguments) {
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->delete("/delContent/{content_id}", function ($request, $response, $arguments) {
+$app->delete("/content/{content_id}", function ($request, $response, $arguments) {
 
 	$token = $request->getHeader('authorization');
 	$token = substr($token[0], strpos($token[0], " ") + 1); 

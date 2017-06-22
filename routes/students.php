@@ -18,7 +18,13 @@ use League\Fractal\Resource\Collection;
 use League\Fractal\Serializer\DataArraySerializer;
 
 $app->get("/student/{username}", function ($request, $response, $arguments) {
-    $test = $this->token->decoded->username;
+    
+    $token = $request->getHeader('authorization');
+    $token = substr($token[0], strpos($token[0], " ") + 1); 
+    $JWT = $this->get('JwtAuthentication');
+    $token = $JWT->decodeToken($JWT->fetchToken($request));
+
+    $test = $token->username;
     /* Load existing student using provided id */
     if (false === $student = $this->spot->mapper("App\Student")->first([
         "username" => $arguments["username"]
