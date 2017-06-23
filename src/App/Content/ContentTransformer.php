@@ -45,6 +45,7 @@ class ContentTransformer extends Fractal\TransformerAbstract {
         
         return [
             "id" => (integer) $content->content_id ?: 0,
+            "randomint" => (integer) $content->randomint ?: null,
             "title" => (string) $content->title ?: null,
             "content" => [
                 "type" => $content->content_type_id ?: 0,

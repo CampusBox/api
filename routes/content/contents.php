@@ -94,13 +94,13 @@ $app->get("/contents[/{content_type_id}]", function ($request, $response, $argum
 		$contents = $this->spot->mapper("App\Content")
 		->all()
 		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->where(["status"=>0])
 		->limit($limit, $offset)
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}
 	$offset += $limit;
 
@@ -143,14 +143,14 @@ $app->post("/contents", function ($request, $response, $arguments) {
 		->all()
 		->where(["content_type_id"=>$filters, "status"=>0])
 		->limit($limit, $offset)
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
 		->where(["status"=>0])
 		->limit($limit, $offset)
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}
 	$offset += $limit;
 
@@ -187,14 +187,14 @@ $app->get("/contentsDashboard", function ($request, $response, $arguments) {
 		$contents = $this->spot->mapper("App\Content")
 		->all()
 		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
 		->where(["status"=>0])
 		->limit(6)
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}
 
 	/* Serialize the response data. */
@@ -231,14 +231,14 @@ $app->get("/contentsList", function ($request, $response, $arguments) {
 		->all()
 		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
 		->limit($limit, $offset)
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
 		->where(["status"=>0])
 		->limit($limit, $offset)
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}
 
 	/* Serialize the response data. */
@@ -345,7 +345,7 @@ $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $ar
 		$first = $this->spot->mapper("App\Content")
 		->all()
 		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
-		->order(["timer" => "DESC"])
+		->order(["randomint" => "DESC"])
 		->first();
 
 	}else{
@@ -353,7 +353,7 @@ $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $ar
 		$first = $this->spot->mapper("App\Content")
 		->all()
 		->where(["status"=>0])
-		->order(["timer" => "DESC"])
+		->order(["randomint" => "DESC"])
 		->first();
 	}
 
@@ -361,13 +361,13 @@ $app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $ar
 		$contents = $this->spot->mapper("App\Content")
 		->all()
 		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}else{
 
 		$contents = $this->spot->mapper("App\Content")
 		->all()
 		->where(["status"=>0])
-		->order(["timer" => "DESC"]);
+		->order(["randomint" => "DESC"]);
 	}
 
 	/* Serialize the response data. */

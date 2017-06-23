@@ -16,6 +16,7 @@ class Content extends \Spot\Entity {
 		"view_type" => ["type" => "integer", 'default' => 1],
 		"title" => ["type" => "string", "required" => true],
 		"timer" => ["type" => "string"],
+		"randomint" => ["type" => "integer"],
 		"status" => ["type" => "integer",'default' => 0]
 		];
 	}
