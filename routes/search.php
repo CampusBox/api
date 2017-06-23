@@ -53,9 +53,9 @@ LEFT JOIN student_skills
 ON students.username = student_skills.username 
 WHERE student_skills.skill_name LIKE "'.$arguments['query'].'%"
 OR student_skills.skill_name LIKE "%'.$arguments['query'].'%"
-OR name LIKE "%'.$arguments['query'].'%"
+OR name LIKE " %'.$arguments['query'].'%"
 OR name LIKE "'.$arguments['query'].'%"
-OR students.username LIKE "%'.$arguments['query'].'%"
+OR students.username LIKE "% '.$arguments['query'].'%"
 OR students.username LIKE "'.$arguments['query'].'%"
 GROUP BY students.username 
 ORDER BY score1 DESC,score2 DESC,score3 DESC
@@ -103,8 +103,8 @@ FROM events
 LEFT JOIN event_tags 
 ON events.event_id = event_tags.event_id 
 WHERE event_tags.name LIKE "'.$arguments['title'].'%"
-OR event_tags.name LIKE "%'.$arguments['title'].'%"
-OR events.title LIKE "%'.$arguments['title'].'%"
+OR event_tags.name LIKE " %'.$arguments['title'].'%"
+OR events.title LIKE " %'.$arguments['title'].'%"
 OR events.title LIKE "'.$arguments['title'].'%"
 GROUP BY events.event_id 
 ORDER BY score1 DESC,score3 DESC
