@@ -20,25 +20,25 @@ $app->post("/bookmarkEvent/{event_id}", function ($request, $response, $argument
  ];
  $bookmark = new EventBookmarks($body);
  if (false === $check = $this->spot->mapper("App\EventBookmarks")->first([
-   "event_id" => $arguments["event_id"],
-   "username" =>  $this->token->decoded->username
-   ])) 
+                                                                         "event_id" => $arguments["event_id"],
+                                                                         "username" =>  $this->token->decoded->username
+                                                                         ])) 
  {
 
   $this->spot->mapper("App\EventBookmarks")->save($bookmark);
-  }
-  else
-  {
+}
+else
+{
   throw new NotFoundException("000 liked it", 404);
-  }
-  /* Add Last-Modified and ETag headers to response. */
-  $response = $this->cache->withEtag($response, $bookmark->etag());
-  $response = $this->cache->withLastModified($response, $bookmark->timestamp());
-  $data["status"] = "ok";
-  $data["message"] = "New bookmark created";
-  return $response->withStatus(201)
-  ->withHeader("Content-Type", "application/json")
-  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+}
+/* Add Last-Modified and ETag headers to response. */
+$response = $this->cache->withEtag($response, $bookmark->etag());
+$response = $this->cache->withLastModified($response, $bookmark->timestamp());
+$data["status"] = "ok";
+$data["message"] = "New bookmark created";
+return $response->withStatus(201)
+->withHeader("Content-Type", "application/json")
+->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 
@@ -46,55 +46,115 @@ $app->delete("/bookmarkEvent/{event_id}", function ($request, $response, $argume
 
   /* Load existing bookmark using provided event_id */
   if (false === $bookmark = $this->spot->mapper("App\EventBookmarks")->first([
-   "event_id" => $arguments["event_id"],
-   "username" =>  $this->token->decoded->username
-   ])) {
+                                                                             "event_id" => $arguments["event_id"],
+                                                                             "username" =>  $this->token->decoded->username
+                                                                             ])) {
     throw new NotFoundException("Had never bookmarked it.", 404);
-  }
-  $this->spot->mapper("App\EventBookmarks")->delete($bookmark);
-  $data["status"] = "ok";
-  $data["message"] = "Bookmark Removed";
-  return $response->withStatus(200)
-  ->withHeader("Content-Type", "application/json")
-  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+}
+$this->spot->mapper("App\EventBookmarks")->delete($bookmark);
+$data["status"] = "ok";
+$data["message"] = "Bookmark Removed";
+return $response->withStatus(200)
+->withHeader("Content-Type", "application/json")
+->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-
+/**
+ * Modifies RSVP state of a user
+ * 0 - Default state (not going & not interested)
+ * 1 - Going
+ * 2 - Interested
+ *
+ * If a state already exists and
+ *       IF 0 is sent: item is deleted
+ *       else: update item if different
+ * Else
+ *       If 0 is sent: NotFoundException
+ *       Else: create item
+ */
 $app->post("/rsvpEvent/{event_id}/{state}", function ($request, $response, $arguments) {
 
- $state = ($arguments["state"] == 1);
- $body = [
- "username" => $this->token->decoded->username,
- "event_id" => $arguments["event_id"],
- "state" => $state
- ];
- $rsvp = new EventRsvp($body);
+ $state = $arguments["state"];
  $item = $this->spot->mapper("App\EventRsvp")->first([
-   "event_id" => $arguments["event_id"],
-   "username" =>  $this->token->decoded->username
-   ]);
-
+                                                     "event_id" => $arguments["event_id"],
+                                                     "username" =>  $this->token->decoded->username
+                                                     ]);
+ 
  $data["state"] = $state;
- if ($item ) {
-  $data['orig'] = $item->state;
-  if ($item->state != $state) {
 
-    $item->state = $state;
-    $status = $this->spot->mapper("App\EventRsvp")->update($item);
+ if ($item) {     // Item exists
 
-    $data["message"] = "RSVP updated";
+   if($state == 0) { // Delete RSVP
 
-  }else  {
+    $status = $this->spot->mapper("App\EventRsvp")->delete($item);
+    $data["status"] = $status;
+    if ($status) 
+      $data["message"] = "Rsvp Removed";
+
+  } else {
+
+    $state = ($arguments["state"] == 1);
+
+    if ($item->state != $state) {  // New state is different than the current saved
+
+      $item->state = $state;
+      $status = $this->spot->mapper("App\EventRsvp")->update($item);
+
+      $data["message"] = "RSVP updated";
+
+    }  else                 // No change in state
     $data["message"] = "No change";
   }
-  } else{
+
+} else{ // Item doesn;t exist
+
+  if ($state == 0) {
+    throw new NotFoundException("Had never rsvped it.", 404);
+  } else {
+
+    $body = [
+    "username" => $this->token->decoded->username,
+    "event_id" => $arguments["event_id"],
+    "state" => $state
+    ];
+    $rsvp = new EventRsvp($body);
     $status = $this->spot->mapper("App\EventRsvp")->save($rsvp);
 
-    $data["message"] = "RSVP added";
+    $data["status"] = $status;
+    if ($status) 
+      $data["message"] = "RSVP added";
   }
-  return $response->withStatus(201)
-  ->withHeader("Content-Type", "application/json")
-  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+}
+
+// $body = [
+// "username" => $this->token->decoded->username,
+// "event_id" => $arguments["event_id"],
+// "state" => $state
+// ];
+// $rsvp = new EventRsvp($body);
+
+// if ($item ) {
+//   $data['orig'] = $item->state;
+//   if ($item->state != $state) {
+
+//     $item->state = $state;
+//     $status = $this->spot->mapper("App\EventRsvp")->update($item);
+
+//     $data["message"] = "RSVP updated";
+
+//   }else  {
+//     $data["message"] = "No change";
+//   }
+// } else{
+//   $status = $this->spot->mapper("App\EventRsvp")->save($rsvp);
+
+//   $data["message"] = "RSVP added";
+// }
+
+
+return $response->withStatus(201)
+->withHeader("Content-Type", "application/json")
+->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 
@@ -102,15 +162,15 @@ $app->delete("/rsvpEvent/{event_id}", function ($request, $response, $arguments)
 
  /* Load existing rsvp using provided event_id */
  if (false === $rsvp = $this->spot->mapper("App\EventRsvp")->first([
-   "event_id" => $arguments["event_id"],
-   "username" =>  $this->token->decoded->username
-   ])) {
+                                                                   "event_id" => $arguments["event_id"],
+                                                                   "username" =>  $this->token->decoded->username
+                                                                   ])) {
   throw new NotFoundException("Had never rsvped it.", 404);
-  };
-  $this->spot->mapper("App\EventRsvp")->delete($rsvp);
-  $data["status"] = "ok";
-  $data["message"] = "Rsvp Removed";
-  return $response->withStatus(200)
-  ->withHeader("Content-Type", "application/json")
-  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+};
+$this->spot->mapper("App\EventRsvp")->delete($rsvp);
+$data["status"] = "ok";
+$data["message"] = "Rsvp Removed";
+return $response->withStatus(200)
+->withHeader("Content-Type", "application/json")
+->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
