@@ -29,6 +29,7 @@ class Student extends \Spot\Entity {
 		"passout_year" => ["type" => "integer"],
 		"birthday" => ["type" => "string"],
 		"gender" => ["type" => "string"],
+		"stamp" => ["type" => "datetime"],
 		];
 	}
 
