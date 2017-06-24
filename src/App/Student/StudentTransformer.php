@@ -44,7 +44,7 @@ class StudentTransformer extends Fractal\TransformerAbstract
          break;
        }
      }
-   }
+   } 
 
    $date = new DateTime($student->stamp->date);
    $this->params['created_on'] = $date->format('F j, Y');
