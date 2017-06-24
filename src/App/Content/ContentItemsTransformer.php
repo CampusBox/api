@@ -24,6 +24,13 @@ class ContentItemsTransformer extends Fractal\TransformerAbstract {
 			"priority" => (string) $content_items->priority ?: 0,
 			"image" => "https://campusbox.org/dist/api/public/contentsImage/" . $content_items->content_item_id
 			];
+		} else if ($content_items->content_item_type == 'image_url' && strpos($content_items->image_url, 'http%') == 0 ){
+			return [
+			"id" => (integer) $content_items->content_item_id ?: 0,
+			"type" => (string) 'image',
+			"priority" => (string) $content_items->priority ?: 0,
+			"image" => (string) $content_items->image_url ?: null
+			];
 		} else{
 			return [
 			"id" => (integer) $content_items->content_item_id ?: 0,
