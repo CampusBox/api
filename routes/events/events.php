@@ -88,18 +88,15 @@ $app->get("/minievents", function ($request, $response, $arguments) {
 		$events = $this->spot->mapper("App\Event")
 		->query("SELECT * FROM `events` "
 			."WHERE status = 0 AND (college_id = " . $college_id . " OR audience = 1) "
-			."ORDER BY CASE "
-			."WHEN college_id = " . $college_id . " THEN college_id "
-			."ELSE audience "
-			."END "
+			."ORDER BY from_date DESC "
 			."LIMIT " . $limit ." OFFSET " . $offset);
 	} else{
 		$college_id = 0; //Not sure. Should work without this.
 		$test = '0';
-		$events = $this->spot->mapper("App\Event")
-		->where(["status"=>0])		
+		$events = $this->spot->mapper("App\Event")		
 		->query("SELECT * FROM `events`
 			WHERE status = 0
+			ORDER BY from_date DESC
 			LIMIT " . $limit ." OFFSET " . $offset);
 	}
 
