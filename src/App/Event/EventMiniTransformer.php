@@ -56,6 +56,17 @@ class EventMiniTransformer extends Fractal\TransformerAbstract {
             $this->params['month'] = $date->format('M');
 
         }
+        switch ($this->params['state']) {
+            case 1:
+                $participation_status = "going";
+                break;
+            case 2:
+                $participation_status = "interested";
+                break;
+            default:
+                $participation_status = "default";
+                break;
+        }
         return [
         "id" => (integer) $event->event_id ?: 0,
         "title" => (string) $event->title ?: null,
@@ -66,6 +77,7 @@ class EventMiniTransformer extends Fractal\TransformerAbstract {
         "college_id" => (integer) $event->college_id ?: 0,
         "audience" => (integer) $event->audience ?: null,
         "participation_state" => (int) $this->params['state'] ?: 0,
+        "participation_status" => (string) $participation_status,
         "location" => [
         "type" => (bool)$event->loc_type,
         "data" => (string) $this->params['location_data'] ?: null
