@@ -25,20 +25,35 @@ $app->post("/bookmarkEvent/{event_id}", function ($request, $response, $argument
                                                                          ])) 
  {
 
-  $this->spot->mapper("App\EventBookmarks")->save($bookmark);
+  $id = $this->spot->mapper("App\EventBookmarks")->save($bookmark);
+  if ($id) {
+
+    /* Add Last-Modified and ETag headers to response. */
+    $response = $this->cache->withEtag($response, $bookmark->etag());
+    $response = $this->cache->withLastModified($response, $bookmark->timestamp());
+    $data["status"] = "ok";
+    $data["message"] = "New bookmark created.";
+
+    return $response->withStatus(201)
+    ->withHeader("Content-Type", "application/json")
+    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+  } else {
+
+    /* Add Last-Modified and ETag headers to response. */
+    $response = $this->cache->withEtag($response, $bookmark->etag());
+    $response = $this->cache->withLastModified($response, $bookmark->timestamp());
+    $data["status"] = "error";
+    $data["message"] = "Error in bookmarking!";
+
+    return $response->withStatus(500)
+    ->withHeader("Content-Type", "application/json")
+    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+  }
 }
 else
 {
-  throw new NotFoundException("000 liked it", 404);
+  throw new NotFoundException("Already Bookmarked", 403);
 }
-/* Add Last-Modified and ETag headers to response. */
-$response = $this->cache->withEtag($response, $bookmark->etag());
-$response = $this->cache->withLastModified($response, $bookmark->timestamp());
-$data["status"] = "ok";
-$data["message"] = "New bookmark created";
-return $response->withStatus(201)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 
@@ -51,12 +66,24 @@ $app->delete("/bookmarkEvent/{event_id}", function ($request, $response, $argume
                                                                              ])) {
     throw new NotFoundException("Had never bookmarked it.", 404);
 }
-$this->spot->mapper("App\EventBookmarks")->delete($bookmark);
-$data["status"] = "ok";
-$data["message"] = "Bookmark Removed";
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+$id = $this->spot->mapper("App\EventBookmarks")->delete($bookmark);
+if ($id) {
+
+ $data["status"] = "ok";
+ $data["message"] = "Bookmark Removed.";
+
+ return $response->withStatus(200)
+ ->withHeader("Content-Type", "application/json")
+ ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+} else {
+
+  $data["status"] = "error";
+  $data["message"] = "Error deleting bookmark!";
+
+  return $response->withStatus(500)
+  ->withHeader("Content-Type", "application/json")
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+}
 });
 
 /**
@@ -167,10 +194,22 @@ $app->delete("/rsvpEvent/{event_id}", function ($request, $response, $arguments)
                                                                    ])) {
   throw new NotFoundException("Had never rsvped it.", 404);
 };
-$this->spot->mapper("App\EventRsvp")->delete($rsvp);
-$data["status"] = "ok";
-$data["message"] = "Rsvp Removed";
-return $response->withStatus(200)
-->withHeader("Content-Type", "application/json")
-->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+$id = $this->spot->mapper("App\EventRsvp")->delete($rsvp);
+if ($id) {
+
+ $data["status"] = "ok";
+ $data["message"] = "Rsvp Removed.";
+
+ return $response->withStatus(200)
+ ->withHeader("Content-Type", "application/json")
+ ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+} else {
+
+  $data["status"] = "error";
+  $data["message"] = "Error removing Rsvp!";
+
+  return $response->withStatus(500)
+  ->withHeader("Content-Type", "application/json")
+  ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+}
 });
