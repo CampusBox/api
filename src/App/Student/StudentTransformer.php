@@ -46,9 +46,6 @@ class StudentTransformer extends Fractal\TransformerAbstract
      }
    } 
 
-   $date = new DateTime($student->stamp->date);
-   $this->params['created_on'] = $date->format('F j, Y');
-
    if ($student->birthday != "0000-00-00 00:00:00") {
     $birthday = new DateTime($student->birthday);
     $this->params['birthday'] = $birthday->format('F j, Y');
@@ -76,7 +73,7 @@ class StudentTransformer extends Fractal\TransformerAbstract
   "age" => (integer)$student->age?: null,
   "gender" => (string)$student->gender?: null,
   "home_city" => (string)$student->home_city?: null,
-  "created_on" => $this->params['created_on'],
+  "created_on" => $student->stamp->format('F j, Y'),
   "birthday" => $this->params['birthday'],
   ],
 
