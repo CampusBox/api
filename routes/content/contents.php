@@ -23,13 +23,6 @@ use League\Fractal\Serializer\DataArraySerializer;
  * Structure: /contents?limit=3&offset=0
  * *NOTE* Not going to be used in the future. The post API will be used instead.
  */
-
-function startsWith($haystack, $needle)
-{
-	$length = strlen($needle);
-	return (substr($haystack, 0, $length) === $needle);
-}
-
 $app->get("/contents", function ($request, $response, $arguments) {
 
 	$limit = isset($_GET['limit']) ? $_GET['limit'] : 3;
@@ -238,20 +231,11 @@ $app->get("/contentsList", function ($request, $response, $arguments) {
 	else
 		$test = '0';
 
-	if(isset($arguments['content_type_id'])){
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
-		->limit($limit, $offset)
-		->order(["randomint" => "DESC"]);
-	}else{
-
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["status"=>0])
-		->limit($limit, $offset)
-		->order(["randomint" => "DESC"]);
-	}
+	$contents = $this->spot->mapper("App\Content")
+	->all()
+	->where(["status"=>0])
+	->limit($limit, $offset)
+	->order(["timer" => "DESC"]);
 
 	/* Serialize the response data. */
 	$fractal = new Manager();
