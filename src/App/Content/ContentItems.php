@@ -19,12 +19,12 @@ class ContentItems extends \Spot\Entity {
 			"content_item_id" => ["type" => "integer", "unsigned" => true, "primary" => true, "autoincrement" => true],
 			"content_id" => ["type" => "integer", "unsigned" => true],
 			"content_item_type" => ["type" => "string"],
-			"description" => ["type" => "string"],
-			"image" => ["type" => "string"],
-			"view" => ["type" => "string"],
-			"embed" => ["type" => "string"],
-			"embed_url" => ["type" => "string"],
-			"priority" => ["type" => "string"],
+			"data" => ["type" => "string"],
+			"thumbnail" => ["type" => "string"],
+			"host" => ["type" => "string"],
+			"url" => ["type" => "string"],
+			"author" => ["type" => "string"],
+			"priority" => ["type" => "integer"],
 			"timer" => ["type" => "datetime"]
 		];
 	}
@@ -55,6 +55,7 @@ class ContentItems extends \Spot\Entity {
 	public static function relations(MapperInterface $mapper, EntityInterface $entity) {
 		return [
 			'Content' => $mapper->belongsTo($entity, 'App\Content', 'content_id'),
+			'ContentImage' => $mapper->hasMany($entity, 'App\ContentImages', 'content_item_id'),
 		];
 	}
 }
