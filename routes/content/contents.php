@@ -2,6 +2,7 @@
 
 use App\Content;
 use App\ContentItems;
+use App\ContentImages;
 use App\ContentType;
 use App\ContentTags;
 use App\ContentTransformer;
@@ -438,58 +439,126 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 	$content['view_type'] = $view_type_id;
 	$newContent = new Content($content);
 	$mapper = $this->spot->mapper("App\Content");
-	$mapper->save($newContent);
+	$wasAdded = $mapper->save($newContent);
+	$url = "http://192.178.7.141/public/contentsImage/";
 
-	$is_changed = false;
+	if ($wasAdded) {	
 
-	for ($i=0; $i < count($body['items']); $i++) {
+		$is_changed = false;
+		$proceed = true;
 
-		$media_type = $body['items'][$i]['mediaType'];
+		for ($i=0; $i < count($body['items']); $i++) {
 
-		if ((bool)$item->has_multiple_view_types && !$is_changed) {
-			if ($view_type_id == 1 && ($media_type == 'image' || $media_type == 'cover')){
-				$view_type_id = 0;
-				$is_changed = true;
-			} elseif ($view_type_id == 5 && 
-				($media_type == 'youtube' || $media_type == 'video' || $media_type == 'vimeo')){
-				$view_type_id = 4;
-				$is_changed = true;
+			$media_type = $body['items'][$i]['mediaType'];
+			$items['content_item_type'] = $media_type;
+			$updateImage = false;
+
+			if ((bool)$item->has_multiple_view_types && !$is_changed) {
+				$provider = $body['items'][$i]['provider'];
+
+				if (($provider == 'youtube' || $provider == 'vimeo') && $view_type_id == 1){
+					$view_type_id = 2;
+					$is_changed = true;
+				}elseif (($view_type_id == 2) && ($provider!= 'youtube' || $provider!= 'vimeo' || $provider!= 'text')){
+					$view_type_id = 1;
+					$is_changed = true;
+				}
 			}
+
+			if ($media_type == 'text') {
+				$items['data'] = isset($body['items'][$i]['text'])?$body['items'][$i]['text']:NULL;
+				$items['host'] = "user";
+			} elseif ($media_type == 'image') {
+
+				$inputImg = isset($body['items'][$i]['image'])?$body['items'][$i]['image']:NULL;
+				$img['data'] = $inputImg;
+				$items['data'] = "<img src=\"".$url."\"></img>";
+				$updateImage = true;
+				$items['content_item_type'] = "embed";
+				$items['host'] = "user";
+
+				// $img['filters'] = isset($body['items'][$i]['filter'])?$body['items'][$i]['filter']:NULL;
+			} elseif ($media_type = 'embed') {
+				$items['data'] = isset($body['items'][$i]['iframe'])?$body['items'][$i]['iframe']:NULL;
+				$items['thumbnail'] = isset($body['items'][$i]['thumbnailUrl'])?$body['items'][$i]['thumbnailUrl']:NULL;
+				$items['host'] = isset($body['items'][$i]['provider'])?$body['items'][$i]['provider']:NULL;
+				$items['url'] = isset($body['items'][$i]['url'])?$body['items'][$i]['url']:NULL;
+				$items['author'] = isset($body['items'][$i]['author'])?$body['items'][$i]['author']:NULL;
+			} elseif ($media_type = 'tech') {
+				$items['data'] = isset($body['items'][$i]['url'])?$body['items'][$i]['url']:NULL;
+				$items['thumbnail'] = isset($body['items'][$i]['icon'])?$body['items'][$i]['icon']:NULL;
+				$items['host'] = isset($body['items'][$i]['provider'])?$body['items'][$i]['provider']:NULL;
+				$items['author'] = isset($body['items'][$i]['author'])?$body['items'][$i]['author']:NULL;
+			} elseif ($media_type = 'sourceCodeUrl') {
+				$items['data'] = isset($body['items'][$i]['url'])?$body['items'][$i]['url']:NULL;
+				$items['thumbnail'] = isset($body['items'][$i]['icon'])?$body['items'][$i]['icon']:NULL;
+				$items['host'] = isset($body['items'][$i]['provider'])?$body['items'][$i]['provider']:NULL;
+				$items['author'] = isset($body['items'][$i]['author'])?$body['items'][$i]['author']:NULL;
+			}
+
+			$items['content_id'] = $newContent->content_id;
+			$items['priority'] = $i;
+			$itemsElement = new ContentItems($items);
+			$wasAdded = $this->spot->mapper("App\ContentItems")->save($itemsElement);
+
+			if ($wasAdded) {
+				if($updateImage){
+					$img['content_item_id'] = $wasAdded;
+					$newImage = new ContentImages($img);
+					$mapper = $this->spot->mapper("App\ContentImages");
+					$wasAdded = $mapper->save($newImage);
+					if ($wasAdded) {
+						$imgNew = "<img src=\"".$url.$wasAdded."\"></img>";
+						$itemsElement->data = $imgNew;
+						$itemsElement->thumbnail = $url.$wasAdded;
+						$done = $this->spot->mapper("App\ContentItems")->update($itemsElement);
+						$data[$i]["data field updated data"] = $imgNew;
+						$data[$i]["data field updated"] = $done;
+					} else{
+						throw new Exception("Image not added", 404);
+
+					}
+				} 
+			}else{
+				throw new ForbiddenException("Content item not added", 401);
+			}
+
 		}
 
-		$items['content_id'] = $newContent->content_id;
-		$items['description'] = isset($body['items'][$i]['text'])?$body['items'][$i]['text']:NULL;
-		$items['content_item_type'] = $media_type;
-		$items['priority'] = $i;
-		$items['image'] = isset($body['items'][$i]['image'])?$body['items'][$i]['image']:NULL;
-		$items['embed'] = isset($body['items'][$i]['embed'])?$body['items'][$i]['embed']:NULL;
-		$items['embed_url'] = isset($body['items'][$i]['embedUrl'])?$body['items'][$i]['embedUrl']:NULL;
-		$itemsElement = new ContentItems($items);
-		$this->spot->mapper("App\ContentItems")->save($itemsElement);
+		for ($i=0; $i < count($body['tags']); $i++) {
+			$tags['content_id'] = $data['data']['content_id'];
+			$tags['name'] = $body['tags'][$i]['name'];
+			$tagsElement = new ContentTags($tags);
+			$this->spot->mapper("App\ContentTags")->save($tagsElement);
+		}
+
+		$done = false;
+
+		if ($proceed) {
+			if ($is_changed) {
+				$data["after"] = $view_type_id;
+				$newContent->view_type = $view_type_id;
+				$done = $mapper->update($newContent);
+			}
+		} else {
+			$mapper->delete($newContent);
+			throw new ForbiddenException("Content not supported for the given type", 401);
+		}
+
+		/* Serialize the response data. */
+		$data["isChanged"] = $is_changed;
+		$data["id"] = $newContent->content_id;
+		$data["message"] = 'Added Successfully';
+		return $response->withStatus(201)
+		->withHeader("Content-Type", "application/json")
+		->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+	} else{
+		$data["error"] = 'error';
+		$data["message"] = 'Added Successfully';
+		return $response->withStatus(500)
+		->withHeader("Content-Type", "application/json")
+		->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 	}
-
-	for ($i=0; $i < count($body['tags']); $i++) {
-		$tags['content_id'] = $data['data']['content_id'];
-		$tags['name'] = $body['tags'][$i]['name'];
-		$tagsElement = new ContentTags($tags);
-		$this->spot->mapper("App\ContentTags")->save($tagsElement);
-	}
-
-	$done = false;
-
-	if ($is_changed) {
-		$data["after"] = $view_type_id;
-		$newContent->view_type = $view_type_id;
-		$done = $mapper->update($newContent);
-	}
-
-	/* Serialize the response data. */
-	$data["isChanged"] = $is_changed;
-	$data["id"] = $newContent->content_id;
-	$data["message"] = 'Added Successfully';
-	return $response->withStatus(201)
-	->withHeader("Content-Type", "application/json")
-	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
 $app->post("/addNew", function ($request, $response, $arguments) {
