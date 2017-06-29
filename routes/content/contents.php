@@ -258,17 +258,17 @@ $app->get("/contentsList", function ($request, $response, $arguments) {
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->get("/contentsImage/{content_item_id}", function ($request, $response, $arguments) {
+$app->get("/contentsImage/{content_image_id}", function ($request, $response, $arguments) {
 
-	$content = $this->spot->mapper("App\ContentItems")
-	->where(["content_item_id"=>$arguments['content_item_id']])
+	$content = $this->spot->mapper("App\ContentImages")
+	->where(["id"=>$arguments['content_image_id']])
 	->first();
 
 	if (false === $content) {
-		throw new NotFoundException("Content not found.", 404);
+		throw new NotFoundException("Image not found.", 404);
 	};
 
-	$new_data=explode(";",$content->image);
+	$new_data=explode(";",$content->data);
 	$type=$new_data[0];
 	$data=explode(",",$new_data[1]);
 
