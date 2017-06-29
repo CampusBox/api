@@ -477,8 +477,12 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 			}
 
 			if ($media_type == 'text') {
-				$items['data'] = isset($body['items'][$i]['text'])?$body['items'][$i]['text']:NULL;
-				$items['host'] = "user";
+				if (isset($body['items'][$i]['text']) && ($body['items'][$i]['text'] != '')) {
+					$items['data'] = $body['items'][$i]['text'];
+					$items['host'] = "user";
+				} else{
+					continue;
+				}
 			} elseif ($media_type == 'image') {
 
 				$inputImg = isset($body['items'][$i]['image'])?$body['items'][$i]['image']:NULL;
