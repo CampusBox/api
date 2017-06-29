@@ -39,14 +39,10 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
             }
         }
 
-        $type = $content->Type['default_view_type'];
-
-        $this->params['view_type'] = $type;
-
         return [
         "id" => (integer) $content->content_id ?: 0,
         "title" => (string) $content->title ?: null,
-        "view_type" => (integer) $this->params['view_type'],
+        "view_type" => (integer) $content->view_type ?: null,
         "content_type" => $content->content_type_id ?: 0,              
         "created_at" => $content->timer ?: 0,
         "owner" => [
