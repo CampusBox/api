@@ -54,6 +54,11 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
             $items = $content->Items
             ->where(["content_item_type"=>"embed"]);
             $this->params['data']->thumbnail = $items[0]->thumbnail;
+            if (in_array($content->content_type_id, [3,8,13,14])){
+                $this->params['data']->overlay = "video";
+            } elseif (in_array($content->content_type_id, [9,10,11])){
+                $this->params['data']->overlay = "singing";
+            }
         } elseif ($view_type == 3) {
             $items = $content->Items
             ->where(["content_item_type"=>"text"]);
