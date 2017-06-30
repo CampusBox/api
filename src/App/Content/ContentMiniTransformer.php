@@ -41,41 +41,64 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
         }
 
         $view_type = $content->view_type;
+        $temp = null;
         if ($view_type == 1) {
             $items = $content->Items
             ->where(["content_item_type"=>"embed"]);
+            $tempData = ''; 
             $data = $items[0]->data;
             if ($data!=null) {
-                $this->params['data']->embed = $items[0]->data;
+                $tempData = $items[0]->data;
+                $temp = array(
+                          'embed' => $tempData
+                          );
             } else{
-                $this->params['data']->thumbnail = $items[0]->thumbnail;
+                $tempData = $items[0]->thumbnail;
+                $temp = array(
+                          'thumbnail' => $tempData
+                          );
             }      
         } elseif ($view_type == 2) {
             $items = $content->Items
             ->where(["content_item_type"=>"embed"]);
-            $this->params['data']->thumbnail = $items[0]->thumbnail;
+            $tempData = ''; 
+            $overlay = '0'; 
+            $tempData = $items[0]->thumbnail;
             if (in_array($content->content_type_id, [3,8,13,14])){
-                $this->params['data']->overlay = "video";
+                $overlay = "video";
             } elseif (in_array($content->content_type_id, [9,10,11])){
-                $this->params['data']->overlay = "singing";
+                $overlay = "singing";
             }
+            $temp = array(
+                          'thumbnail' => $tempData,
+                          'overlay' => $overlay,
+                          );
         } elseif ($view_type == 3) {
             $items = $content->Items
             ->where(["content_item_type"=>"text"]);
-            $this->params['data']->text = $items[0]->data;
+            $temp = array(
+                          'thumbnail' => $items[0]->data
+                          );
         } elseif ($view_type == 4) {
             $items = $content->Items;
+            $icon = '';
+            $url = '';
+            $sourceCodeUrl = '';
             foreach ($items as $item) {
-                if ($item->content_item_type == 'text') {
-                    continue;
-                } elseif ($item->content_item_type == 'tech') {
-                    $this->params['data']->url = $item->data;
-                    $this->params['data']->icon = $item->thumbnail;
+                if ($item->content_item_type == 'tech') {
+                    $icon = $item->thumbnail;
+                    $url = $item->data;
                 } elseif ($item->content_item_type == 'sourceCodeUrl') {
-                    $this->params['data']->sourceCodeUrl = $item->data;
+                    $sourceCodeUrl = $item->data;
                 }
             }
+            $temp = array(
+                          'icon' => $icon,
+                          'url' => $url,
+                          'sourceCodeUrl' => $sourceCodeUrl
+                          );
         }
+        $this->params['data'] = $temp;
 
         return [
         "id" => (integer) $content->content_id ?: 0,
