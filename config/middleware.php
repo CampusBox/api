@@ -8,12 +8,22 @@ use Slim\Middleware\HttpBasicAuthentication;
 use Tuupola\Middleware\Cors;
 use Gofabian\Negotiation\NegotiationMiddleware;
 use Micheh\Cache\CacheUtil;
+use RKA\Middleware\IpAddress;
 
-$container = $app->getContainer();
+//$checkProxyHeaders = true;
+//$trustedProxies = ['127.0.0.1'];
+$container["IpAddress"] = function ($container) {
+    return new IpAddress([
+        "getip" => function($request, $response, $arguments){
+            $ipAddress = $request->withAttribute('ip_address');
+            return $response;
+        }
+        ]);
+};
 
 $container["HttpBasicAuthentication"] = function ($container) {
     return new HttpBasicAuthentication([
-    "secure" => false,
+        "secure" => false,
 
         "path" => "/any",
         "relaxed" => ["localhost:3000"],
@@ -77,6 +87,7 @@ $app->add("HttpBasicAuthentication");
 $app->add("JwtAuthentication");
 $app->add("Cors");
 $app->add("Negotiation");
+$app->add("IpAddress");
 
 $container["cache"] = function ($container) {
     return new CacheUtil;
