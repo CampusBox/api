@@ -77,7 +77,7 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
             $items = $content->Items
             ->where(["content_item_type"=>"text"]);
             $temp = array(
-                          'thumbnail' => $items[0]->data
+                          'text' => $items[0]->data
                           );
         } elseif ($view_type == 4) {
             $items = $content->Items;
