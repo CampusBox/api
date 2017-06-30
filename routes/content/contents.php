@@ -18,6 +18,12 @@ use League\Fractal\Resource\Collection;
 use League\Fractal\Resource\Item;
 use League\Fractal\Serializer\DataArraySerializer;
 
+function startsWith($haystack, $needle)
+{
+	$length = strlen($needle);
+	return (substr($haystack, 0, $length) === $needle);
+}
+
 /**
  * Get creative contents 'limit' no of times
  * Structure: /contents?limit=3&offset=0
@@ -71,8 +77,8 @@ $app->get("/contents", function ($request, $response, $arguments) {
 $app->post("/contents", function ($request, $response, $arguments) {
 	$body = $request->getParsedBody();
 
-	$limit = isset($_GET['limit']) ? $_GET['limit'] : 3;
-	$offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
+	$limit = isset($body['limit']) ? $body['limit'] : 3;
+	$offset = isset($body['offset']) ? $body['offset'] : 0;
 	$filters = $body['filters'];
 
 	$token = $request->getHeader('authorization');
@@ -216,10 +222,12 @@ $app->get("/contentsDashboard", function ($request, $response, $arguments) {
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->get("/contentsList", function ($request, $response, $arguments) {
+$app->post("/contentsList", function ($request, $response, $arguments) {
+	$body = $request->getParsedBody();
 
-	$limit = isset($_GET['limit']) ? $_GET['limit'] : 3;
-	$offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
+	$limit = isset($body['limit']) ? $body['limit'] : 3;
+	$offset = isset($body['offset']) ? $body['offset'] : 0;
+	$filters = $body['filters'];
 
 	$token = $request->getHeader('authorization');
 	$token = substr($token[0], strpos($token[0], " ") + 1); 
@@ -231,11 +239,19 @@ $app->get("/contentsList", function ($request, $response, $arguments) {
 	else
 		$test = '0';
 
-	$contents = $this->spot->mapper("App\Content")
-	->all()
-	->where(["status"=>0])
-	->limit($limit, $offset)
-	->order(["timer" => "DESC"]);
+	if(count($filters)){
+		$contents = $this->spot->mapper("App\Content")
+		->all()
+		->where(["content_type_id"=>$filters, "status"=>0])
+		->limit($limit, $offset)
+		->order(["timer" => "DESC"]);
+	}else{
+		$contents = $this->spot->mapper("App\Content")
+		->all()
+		->where(["status"=>0])
+		->limit($limit, $offset)
+		->order(["timer" => "DESC"]);
+	}
 
 	/* Serialize the response data. */
 	$fractal = new Manager();
@@ -245,6 +261,8 @@ $app->get("/contentsList", function ($request, $response, $arguments) {
 	}
 	$resource = new Collection($contents, new ContentMiniTransformer([ 'type' => 'get', 'username' => $test]));
 	$data = $fractal->createData($resource)->toArray();
+
+	$offset+=$limit;
 
 	$data['meta']['offset'] = $offset;
 	$data['meta']['limit'] = $limit;
