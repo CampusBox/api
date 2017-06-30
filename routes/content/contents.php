@@ -482,24 +482,20 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 
 				// $img['filters'] = isset($body['items'][$i]['filter'])?$body['items'][$i]['filter']:NULL;
 			} elseif ($media_type == 'embed') {
-				$data[$i]["log"]="Running embed";
 				$items['data'] = isset($body['items'][$i]['iframe'])?$body['items'][$i]['iframe']:NULL;
 				$items['thumbnail'] = isset($body['items'][$i]['thumbnailUrl'])?$body['items'][$i]['thumbnailUrl']:NULL;
 				$items['host'] = isset($body['items'][$i]['provider'])?$body['items'][$i]['provider']:NULL;
 				$items['url'] = isset($body['items'][$i]['url'])?$body['items'][$i]['url']:NULL;
 				$items['author'] = isset($body['items'][$i]['author'])?$body['items'][$i]['author']:NULL;
 			} elseif ($media_type == 'tech') {
-				$data[$i]["log"]="Running tech";
 				$items['data'] = isset($body['items'][$i]['url'])?$body['items'][$i]['url']:NULL;
 
 				$thumb = isset($body['items'][$i]['icon'])?$body['items'][$i]['icon']:NULL;
 				if (startsWith($thumb, "data:image/")) {
-					$data['testing'] = "asasa";
 					$items['thumbnail'] = NULL;
 					$img['data'] = $thumb;
 					$updateThumb = true;
 				} else{
-					$data['testing'] = "nonanan";
 					$items['thumbnail'] = $thumb;
 				}
 
@@ -514,8 +510,6 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 
 			$items['content_id'] = $newContent->content_id;
 			$items['priority'] = $i;
-			$data[$i]["itemToBEAdded"]=$items;
-			$data[$i]["mediaTypeAfter"]=$media_type;
 			$itemsElement = new ContentItems($items);
 			$wasAdded = $this->spot->mapper("App\ContentItems")->save($itemsElement);
 
@@ -532,8 +526,6 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 						}
 						$itemsElement->thumbnail = $url.$wasAdded;
 						$done = $this->spot->mapper("App\ContentItems")->update($itemsElement);
-						$data[$i]["data field updated data"] = $imgNew;
-						$data[$i]["data field updated"] = $done;
 					} else{
 						throw new Exception("Image not added", 404);
 
@@ -556,7 +548,6 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 
 		if ($proceed) {
 			if ($is_changed) {
-				$data["after"] = $view_type_id;
 				$newContent->view_type = $view_type_id;
 				$done = $mapper->update($newContent);
 			}
@@ -566,7 +557,6 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 		}
 
 		/* Serialize the response data. */
-		$data["isChanged"] = $is_changed;
 		$data["id"] = $newContent->content_id;
 		$data["message"] = 'Added Successfully';
 		return $response->withStatus(201)
