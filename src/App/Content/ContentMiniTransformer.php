@@ -68,7 +68,7 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
             foreach ($items as $item) {
                 if ($item->content_item_type == 'text') {
                     continue;
-                } elseif ($item->content_item_type == 'embed') {
+                } elseif ($item->content_item_type == 'tech') {
                     $this->params['data']->url = $item->data;
                     $this->params['data']->icon = $item->thumbnail;
                 } elseif ($item->content_item_type == 'sourceCodeUrl') {
