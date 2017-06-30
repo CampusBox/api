@@ -447,18 +447,22 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 			$media_type = $body['items'][$i]['mediaType'];
 			$items['content_item_type'] = $media_type;
 			$updateImage = false;
+			$updateThumb = false;
 
-			if ((bool)$item->has_multiple_view_types && !$is_changed) {
-				$provider = $body['items'][$i]['provider'];
+			/**
+			 * Use when there is a content type that has multiple view_type
+			 */
+			// if ((bool)$item->has_multiple_view_types && !$is_changed) {
+			// 	$provider = $body['items'][$i]['provider'];
 
-				if (($provider == 'youtube' || $provider == 'vimeo') && $view_type_id == 1){
-					$view_type_id = 2;
-					$is_changed = true;
-				}elseif (($view_type_id == 2) && ($provider!= 'youtube' || $provider!= 'vimeo' || $provider!= 'text')){
-					$view_type_id = 1;
-					$is_changed = true;
-				}
-			}
+			// 	if (($provider == 'youtube' || $provider == 'vimeo') && $view_type_id == 1){
+			// 		$view_type_id = 2;
+			// 		$is_changed = true;
+			// 	}elseif (($view_type_id == 2) && ($provider!= 'youtube' || $provider!= 'vimeo' || $provider!= 'text')){
+			// 		$view_type_id = 1;
+			// 		$is_changed = true;
+			// 	}
+			// }
 
 			if ($media_type == 'text') {
 				if (isset($body['items'][$i]['text']) && ($body['items'][$i]['text'] != '')) {
@@ -471,24 +475,37 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 
 				$inputImg = isset($body['items'][$i]['image'])?$body['items'][$i]['image']:NULL;
 				$img['data'] = $inputImg;
-				$items['data'] = "<img src=\"".$url."\"></img>";
+				$items['data'] = "<img src=\"".$url."\">";
 				$updateImage = true;
 				$items['content_item_type'] = "embed";
 				$items['host'] = "user";
 
 				// $img['filters'] = isset($body['items'][$i]['filter'])?$body['items'][$i]['filter']:NULL;
-			} elseif ($media_type = 'embed') {
+			} elseif ($media_type == 'embed') {
+				$data[$i]["log"]="Running embed";
 				$items['data'] = isset($body['items'][$i]['iframe'])?$body['items'][$i]['iframe']:NULL;
 				$items['thumbnail'] = isset($body['items'][$i]['thumbnailUrl'])?$body['items'][$i]['thumbnailUrl']:NULL;
 				$items['host'] = isset($body['items'][$i]['provider'])?$body['items'][$i]['provider']:NULL;
 				$items['url'] = isset($body['items'][$i]['url'])?$body['items'][$i]['url']:NULL;
 				$items['author'] = isset($body['items'][$i]['author'])?$body['items'][$i]['author']:NULL;
-			} elseif ($media_type = 'tech') {
+			} elseif ($media_type == 'tech') {
+				$data[$i]["log"]="Running tech";
 				$items['data'] = isset($body['items'][$i]['url'])?$body['items'][$i]['url']:NULL;
-				$items['thumbnail'] = isset($body['items'][$i]['icon'])?$body['items'][$i]['icon']:NULL;
+
+				$thumb = isset($body['items'][$i]['icon'])?$body['items'][$i]['icon']:NULL;
+				if (startsWith($thumb, "data:image/")) {
+					$data['testing'] = "asasa";
+					$items['thumbnail'] = NULL;
+					$img['data'] = $thumb;
+					$updateThumb = true;
+				} else{
+					$data['testing'] = "nonanan";
+					$items['thumbnail'] = $thumb;
+				}
+
 				$items['host'] = isset($body['items'][$i]['provider'])?$body['items'][$i]['provider']:NULL;
 				$items['author'] = isset($body['items'][$i]['author'])?$body['items'][$i]['author']:NULL;
-			} elseif ($media_type = 'sourceCodeUrl') {
+			} elseif ($media_type == 'sourceCodeUrl') {
 				$items['data'] = isset($body['items'][$i]['url'])?$body['items'][$i]['url']:NULL;
 				$items['thumbnail'] = isset($body['items'][$i]['icon'])?$body['items'][$i]['icon']:NULL;
 				$items['host'] = isset($body['items'][$i]['provider'])?$body['items'][$i]['provider']:NULL;
@@ -497,18 +514,22 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 
 			$items['content_id'] = $newContent->content_id;
 			$items['priority'] = $i;
+			$data[$i]["itemToBEAdded"]=$items;
+			$data[$i]["mediaTypeAfter"]=$media_type;
 			$itemsElement = new ContentItems($items);
 			$wasAdded = $this->spot->mapper("App\ContentItems")->save($itemsElement);
 
 			if ($wasAdded) {
-				if($updateImage){
+				if($updateImage || $updateThumb){
 					$img['content_item_id'] = $wasAdded;
 					$newImage = new ContentImages($img);
 					$mapper = $this->spot->mapper("App\ContentImages");
 					$wasAdded = $mapper->save($newImage);
 					if ($wasAdded) {
-						$imgNew = "<img src=\"".$url.$wasAdded."\"></img>";
-						$itemsElement->data = $imgNew;
+						$imgNew = "<img src=\"".$url.$wasAdded."\">";
+						if ($updateImage) {
+							$itemsElement->data = $imgNew;
+						}
 						$itemsElement->thumbnail = $url.$wasAdded;
 						$done = $this->spot->mapper("App\ContentItems")->update($itemsElement);
 						$data[$i]["data field updated data"] = $imgNew;
