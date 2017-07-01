@@ -59,6 +59,7 @@
         foreach ($follows as $key) {
 
             $newNotification1['type'] = "follower"; 
+            $newNotification1['follower_name'] = $key->name;
             $newNotification1['follower_username'] = $key->follower_username; 
             $newNotification1['timer'] = $key->timer; 
 
