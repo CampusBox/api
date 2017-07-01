@@ -51,7 +51,7 @@ class EventTransformer extends Fractal\TransformerAbstract {
                 "description" => (string) $event->description ?: null,
                 "rules" => (string) $event->description ?: null,
             ],
-                "image" =>"http://campusbox.org/dist/api/public/eventsImage/".$event->event_id,
+                "image" =>"https://campusbox.org/dist/api/public/eventsImage/".$event->event_id,
             "organiser" => [
                 "name" => (string) $event->organiser_name ?: null,
                 "link" =>(string) $event->organiser_link ?: null,
