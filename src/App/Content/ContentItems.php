@@ -11,7 +11,7 @@ use Spot\MapperInterface;
 use Tuupola\Base62;
 
 class ContentItems extends \Spot\Entity {
-	protected static $table = "content_items";
+	protected static $table = "content_items_2";
 
 	public static function fields() {
 		return [
