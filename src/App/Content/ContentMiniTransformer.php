@@ -82,20 +82,18 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
         } elseif ($view_type == 4) {
             $items = $content->Items;
             $icon = '';
-            $url = '';
-            $sourceCodeUrl = '';
+            $text = '';
             foreach ($items as $item) {
                 if ($item->content_item_type == 'tech') {
                     $icon = $item->thumbnail;
                     $url = $item->data;
-                } elseif ($item->content_item_type == 'sourceCodeUrl') {
-                    $sourceCodeUrl = $item->data;
+                } elseif ($item->content_item_type == 'text') {
+                    $text = $item->data;
                 }
             }
             $temp = array(
                           'icon' => $icon,
-                          'url' => $url,
-                          'sourceCodeUrl' => $sourceCodeUrl
+                          'text' => $text
                           );
         }
         $this->params['data'] = $temp;
