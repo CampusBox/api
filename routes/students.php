@@ -17,6 +17,22 @@ use League\Fractal\Resource\Item;
 use League\Fractal\Resource\Collection;
 use League\Fractal\Serializer\DataArraySerializer;
 
+$app->get("/searchStudent/{query}", function($request, $response, $arguments){
+    $query = $arguments['query'];
+    $student = $this->spot->mapper("App\Student")
+    ->query("SELECT * FROM students
+             WHERE username = '". $query ."'");
+    if(count($student)>0){
+        $data["status"] = true;
+    }
+    else{
+        $data["status"] = false;
+    }
+    return $response->withStatus(200)
+    ->withHeader("Content-Type", "application/json")
+    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+});
+
 $app->get("/student/{username}", function ($request, $response, $arguments) {
     
     $token = $request->getHeader('authorization');
