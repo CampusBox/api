@@ -190,7 +190,7 @@ OR name LIKE "'.$arguments['query'].'%"
 OR students.username LIKE "%'.$arguments['query'].'%"
 OR students.username LIKE "'.$arguments['query'].'%"
 GROUP BY students.username 
-ORDER BY score1 DESC,score2 DESC,score3 DESC
+ORDER BY score1 DESC,score2 DESC,score3 DESC LIMIT 6
                                                         ');
   $resourceStudents = new Collection($students, new StudentSearchTransformer);
 
@@ -198,6 +198,7 @@ ORDER BY score1 DESC,score2 DESC,score3 DESC
                                                           SELECT * FROM contents
                                                           WHERE title LIKE "'.$arguments['query'].'%"
                                                           OR title LIKE "% '.$arguments['query'].'%"
+                                                          LIMIT 6
 
                                                           ');
   $resourceCreativity = new Collection($creativity, new ContentMiniTransformer);
@@ -225,7 +226,7 @@ OR event_tags.name LIKE "%'.$arguments['query'].'%"
 OR events.title LIKE "%'.$arguments['query'].'%"
 OR events.title LIKE "'.$arguments['query'].'%"
 GROUP BY events.event_id 
-ORDER BY score1 DESC,score3 DESC
+ORDER BY score1 DESC,score3 DESC LIMIT 6
                                                     ');
   $resourceEvents = new Collection($events, new EventMiniTransformer(['username' => $test, 'type' => 'get']));
 

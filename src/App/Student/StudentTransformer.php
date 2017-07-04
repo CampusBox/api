@@ -121,11 +121,12 @@ public function includeSocialAccounts(Student $student) {
 public function includeFollowing(Student $student) {
   $followers = $student->Following;
 
-  return $this->collection($followers, new StudentMiniTransformer);
-}
-public function includeFollower(Student $student) {
-  $followers = $student->Follower;
+    return $this->collection($followers, new StudentMiniTransformer(['username' => $this->params['username'], 'type' => 'get']));
+  }
+  public function includeFollower(Student $student) {
+    $followers = $student->Follower;
 
-  return $this->collection($followers, new StudentMiniTransformer);
+    return $this->collection($followers, new StudentMiniTransformer(['username' => $this->params['username'], 'type' => 'get']));
+  }
 }
 }
