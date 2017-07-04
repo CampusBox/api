@@ -10,21 +10,15 @@ use Spot\EventEmitter;
 use Spot\MapperInterface;
 use Tuupola\Base62;
 
-class ContentItems extends \Spot\Entity {
-	protected static $table = "content_items_2";
+class ContentImages extends \Spot\Entity {
+	protected static $table = "content_images";
 
 	public static function fields() {
 		return [
 
-			"content_item_id" => ["type" => "integer", "unsigned" => true, "primary" => true, "autoincrement" => true],
-			"content_id" => ["type" => "integer", "unsigned" => true],
-			"content_item_type" => ["type" => "string"],
+			"id" => ["type" => "integer", "unsigned" => true, "primary" => true, "autoincrement" => true],
+			"content_item_id" => ["type" => "integer", "unsigned" => true],
 			"data" => ["type" => "string"],
-			"thumbnail" => ["type" => "string"],
-			"host" => ["type" => "string"],
-			"url" => ["type" => "string"],
-			"author" => ["type" => "string"],
-			"priority" => ["type" => "integer"],
 			"timer" => ["type" => "datetime"]
 		];
 	}
@@ -54,8 +48,7 @@ class ContentItems extends \Spot\Entity {
 
 	public static function relations(MapperInterface $mapper, EntityInterface $entity) {
 		return [
-			'Content' => $mapper->belongsTo($entity, 'App\Content', 'content_id'),
-			'ContentImage' => $mapper->hasMany($entity, 'App\ContentImages', 'content_item_id'),
+			'ContentItem' => $mapper->belongsTo($entity, 'App\ContentItems', 'content_item_id'),
 		];
 	}
 }

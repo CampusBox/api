@@ -53,6 +53,12 @@ class StudentTransformer extends Fractal\TransformerAbstract
     $this->params['birthday'] = "Not set";
   }
 
+  if($student->stamp == null){
+    $this->params['stamp'] = new DateTime();
+  } else{
+    $this->params['stamp'] = $student->stamp;
+  }
+
   return [
   "username" => (string)$student->username?: 0 ,
   "name" => (string)$student->name?: null,
@@ -73,7 +79,7 @@ class StudentTransformer extends Fractal\TransformerAbstract
   "age" => (integer)$student->age?: null,
   "gender" => (string)$student->gender?: null,
   "home_city" => (string)$student->home_city?: null,
-  "created_on" => $student->stamp->format('F j, Y'),
+  "created_on" => $this->params['stamp']->format('F j, Y'),
   "birthday" => $this->params['birthday'],
   ],
 

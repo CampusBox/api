@@ -12,9 +12,9 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
         $this->params['value'] = false;
     }
 
-    protected $defaultIncludes = [
-    'items'
-    ];
+    // protected $defaultIncludes = [
+    // 'items'
+    // ];
 
     public function transform(Content $content) {
 
@@ -22,6 +22,7 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
         $bookmarks = null;
         $this->params['appreciateValue'] = 0;
         $this->params['bookmarkValue'] = 0;
+        $this->params['data'] = null;
         if(isset($this->params['type']) && $this->params['type'] == 'get'){
             $appreciates = $content->Appreciated;
             for ($i=0; $i < count($appreciates); $i++) { 
@@ -39,16 +40,71 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
             }
         }
 
-        $type = $content->Type['default_view_type'];
-
-        $this->params['view_type'] = $type;
+        $view_type = $content->view_type;
+        $temp = null;
+        if ($view_type == 1) {
+            $items = $content->Items
+            ->where(["content_item_type"=>"embed"]);
+            $tempData = ''; 
+            $data = $items[0]->data;
+            if ($data!=null) {
+                $tempData = $items[0]->data;
+                $temp = array(
+                          'embed' => $tempData
+                          );
+            } else{
+                $tempData = $items[0]->thumbnail;
+                $temp = array(
+                          'thumbnail' => $tempData
+                          );
+            }      
+        } elseif ($view_type == 2) {
+            $items = $content->Items
+            ->where(["content_item_type"=>"embed"]);
+            $tempData = ''; 
+            $overlay = '0'; 
+            $tempData = $items[0]->thumbnail;
+            if (in_array($content->content_type_id, [3,8,13,14])){
+                $overlay = "video";
+            } elseif (in_array($content->content_type_id, [9,10,11])){
+                $overlay = "singing";
+            }
+            $temp = array(
+                          'thumbnail' => $tempData,
+                          'overlay' => $overlay,
+                          );
+        } elseif ($view_type == 3) {
+            $items = $content->Items
+            ->where(["content_item_type"=>"text"]);
+            $temp = array(
+                          'text' => $items[0]->data
+                          );
+        } elseif ($view_type == 4) {
+            $items = $content->Items;
+            $icon = '';
+            $text = '';
+            foreach ($items as $item) {
+                if ($item->content_item_type == 'tech') {
+                    $icon = $item->thumbnail;
+                    $url = $item->data;
+                } elseif ($item->content_item_type == 'text') {
+                    $text = $item->data;
+                }
+            }
+            $temp = array(
+                          'icon' => $icon,
+                          'text' => $text
+                          );
+        }
+        $this->params['data'] = $temp;
 
         return [
         "id" => (integer) $content->content_id ?: 0,
         "title" => (string) $content->title ?: null,
-        "view_type" => (integer) $this->params['view_type'],
+        "view_type" => (integer) $content->view_type ?: null,
         "content_type" => $content->content_type_id ?: 0,              
         "created_at" => $content->timer ?: 0,
+        "items" => $this->params['data'],
         "owner" => [
         "username" => (string) $content->Owner['username'] ?: null,
         "name" => (string) $content->Owner['name'] ?: null,
@@ -67,9 +123,12 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
         ],
         ];
     }
-    public function includeitems(Content $content) {
-        $items = $content->Items;
+    // public function includeitems(Content $content) {
+    //     $view_type = $content->view_type;
+    //     if ($view_type) {
+    //     $items = $content->Items->where();
+    //     }
 
-        return $this->collection($items, new ContentItemsTransformer);
-    }
+    //     return $this->collection($items, new ContentItemsTransformer);
+    // }
 }

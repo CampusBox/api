@@ -22,10 +22,10 @@ $app->post("/signup", function ($request, $response, $arguments) {
 	}
 	if($body['type'] == 'facebook'){
 		$fb = new \Facebook\Facebook([
-			'app_id' => '1250377088376164',
-			'app_secret' => '9ea27671762a7c1b1899f5b10c45f950',
-			'default_graph_version' => 'v2.8',
-			]);
+		                             'app_id' => '1250377088376164',
+		                             'app_secret' => '9ea27671762a7c1b1899f5b10c45f950',
+		                             'default_graph_version' => 'v2.8',
+		                             ]);
 		try {
 			$x = $fb->get('/me?fields=email,name,id,gender,about,website,birthday,picture.width(800).height(800),link,cover', $body['token']);
 		} catch (\Facebook\Exceptions\FacebookResponseExpception $e) {
@@ -81,6 +81,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 				$social['college_id'] = $student[0]->college_id;
 				$social['social_id'] = $facebookData['id'];
 				$social['type'] = "facebook";
+				$social['roll_number'] = 1;
 				$social['token'] = $body['token'];
 				$social['name'] = isset($facebookData['name'])?$facebookData['name']:" ";
 				$social['email'] = isset($facebookData['email'])? $facebookData['email']:" ";
@@ -223,6 +224,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			$social['username'] = $student[0]->username;
 			$social['college_id'] = $student[0]->college_id;
 			$social['social_id'] = $googleData->id;
+			$social['roll_number'] = 0;
 			$social['type'] = "google";
 			$social['token'] = $body['token'];
 			$social['name'] = isset($googleData->name)?$googleData->name:" ";
@@ -297,6 +299,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		$social['social_id'] = $googleData->id;
 		$social['type'] = "google";
 		$social['token'] =$body['token'];
+		$social['roll_number'] = 1;
 		$social['name'] = isset($googleData->name)?$googleData->name:" ";
 		$social['email'] = isset($googleData->email)? $googleData->email:" ";
 		$social['gender'] = isset($googleData->gender)?$googleData->gender:" ";
@@ -360,6 +363,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			$social['name'] = isset($linkedinData->name)?$linkedinData->name:" ";
 			$social['email'] = isset($linkedinData->email)? $linkedinData->email:" ";
 			$social['gender'] = isset($linkedinData->gender)?$linkedinData->gender:" ";
+			$social['roll_number'] = 1;
 			$social['birthday'] = isset($linkedinData->birthday) ?$linkedinData->birthday:" ";
 			$social['link'] = isset($linkedinData->link) ?$linkedinData->link:" ";
 			$social['about'] = isset($linkedinData->about) ?$linkedinData->about: " ";
@@ -427,6 +431,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 			$social['social_id'] = $googleData->id;
 			$social['type'] = "google";
 			$social['token'] =$body['access_token'];
+			$social['roll_number'] = 1;
 			$social['name'] = isset($googleData->name)?$googleData->name:" ";
 			$social['email'] = isset($googleData->email)? $googleData->email:" ";
 			$social['gender'] = isset($googleData->gender)?$googleData->gender:" ";
