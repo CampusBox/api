@@ -148,7 +148,6 @@ $app->post("/signup", function ($request, $response, $arguments) {
 
 					// add same data to social accounts table
 		$social['college_id'] = 0;
-		$social['roll_number'] = $body['roll']	;
 		$social['username'] = $newUser['username'];
 		$social['social_id'] = $facebookData['id'];
 		$social['type'] = "facebook";
