@@ -20,9 +20,9 @@ $app->post("/bookmarkEvent/{event_id}", function ($request, $response, $argument
  ];
  $bookmark = new EventBookmarks($body);
  if (false === $check = $this->spot->mapper("App\EventBookmarks")->first([
-                                                                         "event_id" => $arguments["event_id"],
-                                                                         "username" =>  $this->token->decoded->username
-                                                                         ])) 
+   "event_id" => $arguments["event_id"],
+   "username" =>  $this->token->decoded->username
+   ])) 
  {
 
   $id = $this->spot->mapper("App\EventBookmarks")->save($bookmark);
@@ -61,9 +61,9 @@ $app->delete("/bookmarkEvent/{event_id}", function ($request, $response, $argume
 
   /* Load existing bookmark using provided event_id */
   if (false === $bookmark = $this->spot->mapper("App\EventBookmarks")->first([
-                                                                             "event_id" => $arguments["event_id"],
-                                                                             "username" =>  $this->token->decoded->username
-                                                                             ])) {
+   "event_id" => $arguments["event_id"],
+   "username" =>  $this->token->decoded->username
+   ])) {
     throw new NotFoundException("Had never bookmarked it.", 404);
 }
 $id = $this->spot->mapper("App\EventBookmarks")->delete($bookmark);
@@ -103,9 +103,9 @@ $app->post("/rsvpEvent/{event_id}/{state}", function ($request, $response, $argu
 
  $state = $arguments["state"];
  $item = $this->spot->mapper("App\EventRsvp")->first([
-                                                     "event_id" => $arguments["event_id"],
-                                                     "username" =>  $this->token->decoded->username
-                                                     ]);
+   "event_id" => $arguments["event_id"],
+   "username" =>  $this->token->decoded->username
+   ]);
  
  $data["state"] = $state;
 
@@ -189,9 +189,9 @@ $app->delete("/rsvpEvent/{event_id}", function ($request, $response, $arguments)
 
  /* Load existing rsvp using provided event_id */
  if (false === $rsvp = $this->spot->mapper("App\EventRsvp")->first([
-                                                                   "event_id" => $arguments["event_id"],
-                                                                   "username" =>  $this->token->decoded->username
-                                                                   ])) {
+   "event_id" => $arguments["event_id"],
+   "username" =>  $this->token->decoded->username
+   ])) {
   throw new NotFoundException("Had never rsvped it.", 404);
 };
 $id = $this->spot->mapper("App\EventRsvp")->delete($rsvp);
@@ -212,4 +212,49 @@ if ($id) {
   ->withHeader("Content-Type", "application/json")
   ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 }
+});
+
+
+
+
+$app->post("/report/event/{id}", function ($request, $response, $arguments) {
+
+    /* Load existing report using provided id */
+    if (false === $report = $this->spot->mapper("App\Event")->first([
+        "event_id" => $arguments["id"]
+    ])){
+        throw new NotFoundException("Event not found.", 404);
+    };
+    if (!(false === $report = $this->spot->mapper("App\ReportEvent")->first([
+        "event_id" => $arguments["id"]
+    ]))){
+        $data["message"]= "Already Reported";
+        return $response->withStatus(201)
+            ->withHeader("Content-Type", "application/json")
+            ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    };
+
+    $token = $request->getHeader('authorization');
+    $token = substr($token[0], strpos($token[0], " ") + 1); 
+    $JWT = $this->get('JwtAuthentication');
+    $token = $JWT->decodeToken($JWT->fetchToken($request));
+
+    $body = $request->getParsedBody();
+    $reportdata["event_id"]=$arguments["id"];
+    $reportdata["remarks"]=isset($body["remark"])?$body["remark"]:null;
+    $reportdata["username"]=$token->username;
+    $report = new ReportEvent($reportdata);
+    $this->spot->mapper("App\ReportEvent")->save($report);
+
+    /* Serialize the response data. */
+    $fractal = new Manager();
+    $fractal->setSerializer(new DataArraySerializer);
+    $resource = new Item($report, new ReportEventTransformer);
+    $data = $fractal->createData($resource)->toArray();
+    $data["status"] = "ok";
+    $data["message"] = "New report created";
+
+    return $response->withStatus(201)
+        ->withHeader("Content-Type", "application/json")
+        ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
