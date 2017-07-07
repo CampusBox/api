@@ -14,6 +14,11 @@ class EventTransformer extends Fractal\TransformerAbstract {
            // 'SocialAccounts',
           'Tags'
       ];
+      
+      /**
+       * @param  Event
+       * @return [type]
+       */
     public function transform(Event $event) {
         $this->params['bookmaked_status'] = false;
 		$this->params['participation_status'] = false;
