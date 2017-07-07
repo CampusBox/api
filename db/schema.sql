@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jun 10, 2017 at 02:04 AM
--- Server version: 10.0.30-MariaDB-cll-lve
+-- Generation Time: Jul 07, 2017 at 11:21 PM
+-- Server version: 10.0.31-MariaDB-cll-lve
 -- PHP Version: 5.6.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -17,93 +17,8 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `bookfoxi_campusbox`
+-- Database: `bookfoxi_campusbox_beta`
 --
-
--- --------------------------------------------------------
-
---
--- Table structure for table `branches`
---
-
-CREATE TABLE `branches` (
-  `branch_id` int(11) NOT NULL,
-  `programme_id` int(11) DEFAULT NULL,
-  `name` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `class_group`
---
-
-CREATE TABLE `class_group` (
-  `class_group_id` int(10) NOT NULL,
-  `branch_id` int(10) NOT NULL,
-  `name` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `col`
---
-
-CREATE TABLE `col` (
-  `college_id` int(4) NOT NULL,
-  `name` varchar(500) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `college`
---
-
-CREATE TABLE `college` (
-  `college_id` int(10) NOT NULL,
-  `name` text NOT NULL,
-  `grade` varchar(100) DEFAULT NULL,
-  `EC_approved_dt` varchar(100) DEFAULT NULL,
-  `Cycle1` varchar(100) DEFAULT NULL,
-  `lat` float DEFAULT NULL,
-  `longitude` float DEFAULT NULL,
-  `address` text,
-  `city` text,
-  `logo` text,
-  `cover_pic` text
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `collegeadmins`
---
-
-CREATE TABLE `collegeadmins` (
-  `id` int(11) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `college_id` int(11) NOT NULL,
-  `rollnumber` int(11) NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `college_updates`
---
-
-CREATE TABLE `college_updates` (
-  `update_id` int(11) NOT NULL,
-  `college_id` int(11) NOT NULL,
-  `title` text NOT NULL,
-  `message` text NOT NULL,
-  `link` text NOT NULL,
-  `priority` text,
-  `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -127,12 +42,14 @@ CREATE TABLE `contacts` (
 CREATE TABLE `contents` (
   `content_id` int(10) NOT NULL,
   `created_by_username` varchar(50) NOT NULL,
-  `college_id` int(10) NOT NULL,
+  `college_id` int(10) DEFAULT NULL,
   `title` text NOT NULL,
   `view_type` tinyint(4) NOT NULL DEFAULT '1',
   `content_type_id` int(11) NOT NULL,
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` varchar(50) NOT NULL DEFAULT 'active'
+  `status` varchar(30) NOT NULL DEFAULT 'active' COMMENT 'active,inactive,draft',
+  `randomint` int(11) DEFAULT NULL COMMENT 'random to show content',
+  `priority` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
 
 -- --------------------------------------------------------
@@ -164,21 +81,49 @@ CREATE TABLE `content_bookmarks` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `content_images`
+--
+
+CREATE TABLE `content_images` (
+  `id` int(11) NOT NULL,
+  `content_item_id` int(11) NOT NULL,
+  `data` blob NOT NULL,
+  `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `content_items`
 --
 
 CREATE TABLE `content_items` (
   `content_item_id` int(11) NOT NULL,
   `content_id` int(11) NOT NULL,
-  `content_item_type` varchar(11) NOT NULL,
-  `description` text,
-  `image` longblob,
-  `view` int(11) DEFAULT NULL,
-  `embed` text,
-  `embed_url` text,
+  `content_item_type` text NOT NULL,
+  `data` text,
+  `thumbnail` text,
+  `host` text,
+  `url` text,
+  `author` text,
   `priority` int(11) DEFAULT NULL,
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=COMPACT;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `content_responses`
+--
+
+CREATE TABLE `content_responses` (
+  `content_response_id` int(10) NOT NULL,
+  `content_id` int(10) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `response_text` text NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'active',
+  `timed` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -201,46 +146,23 @@ CREATE TABLE `content_tags` (
 CREATE TABLE `content_types` (
   `content_type_id` int(10) NOT NULL,
   `name` text NOT NULL,
+  `tags` text NOT NULL,
   `default_view_type` tinyint(4) NOT NULL DEFAULT '0',
-  `has_multiple_view_types` tinyint(1) NOT NULL DEFAULT '0'
+  `has_multiple_view_types` tinyint(1) NOT NULL DEFAULT '0',
+  `alternate_view_types` text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `events`
+-- Table structure for table `devices`
 --
 
-CREATE TABLE `events` (
-  `event_id` int(10) NOT NULL,
-  `college_id` int(10) DEFAULT NULL,
-  `created_by_username` varchar(50) DEFAULT NULL,
-  `image` longblob,
-  `title` text NOT NULL,
-  `subtitle` text,
-  `loc_type` tinyint(1) DEFAULT '1' COMMENT 'true: offline false: online',
-  `from_date` text NOT NULL,
-  `from_time` text NOT NULL,
-  `from_period` tinyint(4) NOT NULL,
-  `to_date` text NOT NULL,
-  `to_time` text NOT NULL,
-  `to_period` tinyint(4) NOT NULL,
-  `description` text NOT NULL,
-  `contactperson1` int(11) DEFAULT NULL,
-  `contactperson2` int(11) DEFAULT NULL,
-  `venue` text NOT NULL,
-  `city` text,
-  `state` text,
-  `audience` tinyint(1) NOT NULL DEFAULT '0',
-  `event_type_id` int(11) NOT NULL,
-  `event_category_id` int(11) DEFAULT '0',
-  `link` text,
-  `organiser_name` text NOT NULL,
-  `organiser_phone` int(11) NOT NULL,
-  `organiser_link` text,
-  `price` int(10) NOT NULL,
-  `time_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` varchar(50) NOT NULL DEFAULT 'active'
+CREATE TABLE `devices` (
+  `id` int(11) NOT NULL,
+  `username` int(11) NOT NULL,
+  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `device` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -268,19 +190,6 @@ CREATE TABLE `event_images` (
   `url` text NOT NULL,
   `timer` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `event_likes`
---
-
-CREATE TABLE `event_likes` (
-  `likes_id` int(10) NOT NULL,
-  `event_id` int(10) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `timed` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=FIXED;
 
 -- --------------------------------------------------------
 
@@ -383,22 +292,6 @@ CREATE TABLE `followers` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `hostel`
---
-
-CREATE TABLE `hostel` (
-  `hostel_id` int(10) NOT NULL,
-  `college_id` int(10) NOT NULL,
-  `name` text NOT NULL,
-  `gender` text NOT NULL,
-  `mess` tinyint(1) NOT NULL DEFAULT '1',
-  `lat` float NOT NULL,
-  `long` float NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `interests`
 --
 
@@ -426,19 +319,6 @@ CREATE TABLE `lastviewed` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `logins`
---
-
-CREATE TABLE `logins` (
-  `id` int(11) NOT NULL,
-  `username` int(11) NOT NULL,
-  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `device` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `logs`
 --
 
@@ -455,33 +335,21 @@ CREATE TABLE `logs` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `noticeboard`
+-- Table structure for table `pma__tracking`
 --
 
-CREATE TABLE `noticeboard` (
-  `id` int(11) NOT NULL,
-  `college` int(11) NOT NULL,
-  `title` text NOT NULL,
-  `message` text NOT NULL,
-  `userId` int(11) NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `destroyOn` datetime NOT NULL,
-  `year` int(11) NOT NULL,
-  `branchId` int(11) NOT NULL,
-  `status` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `programmes`
---
-
-CREATE TABLE `programmes` (
-  `programme_id` int(11) NOT NULL,
-  `college_id` int(11) DEFAULT NULL,
-  `name` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE `pma__tracking` (
+  `db_name` varchar(64) COLLATE utf8_bin NOT NULL,
+  `table_name` varchar(64) COLLATE utf8_bin NOT NULL,
+  `version` int(10) UNSIGNED NOT NULL,
+  `date_created` datetime NOT NULL,
+  `date_updated` datetime NOT NULL,
+  `schema_snapshot` text COLLATE utf8_bin NOT NULL,
+  `schema_sql` text COLLATE utf8_bin,
+  `data_sql` longtext COLLATE utf8_bin,
+  `tracking` set('UPDATE','REPLACE','INSERT','DELETE','TRUNCATE','CREATE DATABASE','ALTER DATABASE','DROP DATABASE','CREATE TABLE','ALTER TABLE','RENAME TABLE','DROP TABLE','CREATE INDEX','DROP INDEX','CREATE VIEW','ALTER VIEW','DROP VIEW') COLLATE utf8_bin DEFAULT NULL,
+  `tracking_active` int(1) UNSIGNED NOT NULL DEFAULT '1'
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='Database changes tracking for phpMyAdmin';
 
 -- --------------------------------------------------------
 
@@ -509,20 +377,6 @@ CREATE TABLE `report_event` (
   `username` varchar(50) NOT NULL,
   `remarks` text,
   `time_reported` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `request_contact`
---
-
-CREATE TABLE `request_contact` (
-  `id` int(10) NOT NULL,
-  `req_by_id` int(11) NOT NULL,
-  `req_to_id` int(11) NOT NULL,
-  `req_field` int(11) NOT NULL,
-  `status` text
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -560,22 +414,6 @@ CREATE TABLE `social_accounts` (
   `cover` text,
   `stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 ROW_FORMAT=COMPACT;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `societies`
---
-
-CREATE TABLE `societies` (
-  `id` int(10) NOT NULL,
-  `college_id` int(10) NOT NULL,
-  `name` text NOT NULL,
-  `description` text NOT NULL,
-  `dp` text NOT NULL,
-  `created_by` int(10) NOT NULL,
-  `website` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -636,52 +474,6 @@ CREATE TABLE `student_skills` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `subjects`
---
-
-CREATE TABLE `subjects` (
-  `id` int(11) NOT NULL,
-  `collegeId` int(11) NOT NULL,
-  `programId` int(11) NOT NULL,
-  `code` text NOT NULL,
-  `name` text NOT NULL,
-  `credits` float NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `TABLE 43`
---
-
-CREATE TABLE `TABLE 43` (
-  `COL 3` varchar(264) DEFAULT NULL,
-  `COL 4` varchar(22) DEFAULT NULL,
-  `COL 5` varchar(52) DEFAULT NULL,
-  `COL 6` varchar(36) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `team_members`
---
-
-CREATE TABLE `team_members` (
-  `id` int(10) NOT NULL,
-  `college_id` int(10) NOT NULL,
-  `society_id` int(10) NOT NULL,
-  `societyUsername` text,
-  `added_by_id` int(10) NOT NULL,
-  `name` text NOT NULL,
-  `email` text NOT NULL,
-  `phone` int(10) NOT NULL,
-  `position` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `todos`
 --
 
@@ -700,48 +492,13 @@ CREATE TABLE `todos` (
 --
 
 --
--- Indexes for table `branches`
---
-ALTER TABLE `branches`
-  ADD PRIMARY KEY (`branch_id`);
-
---
--- Indexes for table `class_group`
---
-ALTER TABLE `class_group`
-  ADD PRIMARY KEY (`class_group_id`);
-
---
--- Indexes for table `col`
---
-ALTER TABLE `col`
-  ADD PRIMARY KEY (`college_id`);
-
---
--- Indexes for table `college`
---
-ALTER TABLE `college`
-  ADD PRIMARY KEY (`college_id`);
-
---
--- Indexes for table `collegeadmins`
---
-ALTER TABLE `collegeadmins`
-  ADD KEY `username` (`username`);
-
---
--- Indexes for table `college_updates`
---
-ALTER TABLE `college_updates`
-  ADD PRIMARY KEY (`update_id`);
-
---
 -- Indexes for table `contents`
 --
 ALTER TABLE `contents`
   ADD PRIMARY KEY (`content_id`),
   ADD KEY `created_by_username` (`created_by_username`),
-  ADD KEY `college_id` (`college_id`);
+  ADD KEY `college_id` (`college_id`),
+  ADD KEY `random` (`randomint`);
 ALTER TABLE `contents` ADD FULLTEXT KEY `title` (`title`);
 
 --
@@ -761,11 +518,26 @@ ALTER TABLE `content_bookmarks`
   ADD KEY `username` (`username`);
 
 --
+-- Indexes for table `content_images`
+--
+ALTER TABLE `content_images`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `content_images_ibfk_1` (`content_item_id`);
+
+--
 -- Indexes for table `content_items`
 --
 ALTER TABLE `content_items`
   ADD PRIMARY KEY (`content_item_id`),
   ADD KEY `content_id` (`content_id`);
+
+--
+-- Indexes for table `content_responses`
+--
+ALTER TABLE `content_responses`
+  ADD PRIMARY KEY (`content_response_id`),
+  ADD KEY `content_id` (`content_id`,`username`),
+  ADD KEY `username` (`username`);
 
 --
 -- Indexes for table `content_tags`
@@ -778,17 +550,6 @@ ALTER TABLE `content_tags`
 --
 ALTER TABLE `content_types`
   ADD PRIMARY KEY (`content_type_id`);
-
---
--- Indexes for table `events`
---
-ALTER TABLE `events`
-  ADD PRIMARY KEY (`event_id`),
-  ADD KEY `created_by_username` (`created_by_username`),
-  ADD KEY `college_id` (`college_id`);
-ALTER TABLE `events` ADD FULLTEXT KEY `title` (`title`);
-ALTER TABLE `events` ADD FULLTEXT KEY `subtitle` (`subtitle`);
-ALTER TABLE `events` ADD FULLTEXT KEY `description` (`description`);
 
 --
 -- Indexes for table `event_bookmarks`
@@ -804,14 +565,6 @@ ALTER TABLE `event_bookmarks`
 ALTER TABLE `event_images`
   ADD PRIMARY KEY (`event_image_id`),
   ADD KEY `event_id` (`event_id`);
-
---
--- Indexes for table `event_likes`
---
-ALTER TABLE `event_likes`
-  ADD PRIMARY KEY (`likes_id`),
-  ADD KEY `event_id` (`event_id`),
-  ADD KEY `username` (`username`);
 
 --
 -- Indexes for table `event_rsvps`
@@ -856,6 +609,12 @@ ALTER TABLE `followers`
   ADD PRIMARY KEY (`id`),
   ADD KEY `followed_username` (`followed_username`),
   ADD KEY `follower_username` (`follower_username`);
+
+--
+-- Indexes for table `pma__tracking`
+--
+ALTER TABLE `pma__tracking`
+  ADD PRIMARY KEY (`db_name`,`table_name`,`version`);
 
 --
 -- Indexes for table `report_content`
@@ -905,75 +664,60 @@ ALTER TABLE `student_skills`
 --
 
 --
--- AUTO_INCREMENT for table `col`
---
-ALTER TABLE `col`
-  MODIFY `college_id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7270;
---
--- AUTO_INCREMENT for table `college`
---
-ALTER TABLE `college`
-  MODIFY `college_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7274;
---
--- AUTO_INCREMENT for table `college_updates`
---
-ALTER TABLE `college_updates`
-  MODIFY `update_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
---
 -- AUTO_INCREMENT for table `contents`
 --
 ALTER TABLE `contents`
-  MODIFY `content_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=316;
+  MODIFY `content_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 --
 -- AUTO_INCREMENT for table `content_appreciates`
 --
 ALTER TABLE `content_appreciates`
-  MODIFY `content_appreciate_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1205;
+  MODIFY `content_appreciate_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1765;
 --
 -- AUTO_INCREMENT for table `content_bookmarks`
 --
 ALTER TABLE `content_bookmarks`
-  MODIFY `content_bookmark_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=170;
+  MODIFY `content_bookmark_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=218;
+--
+-- AUTO_INCREMENT for table `content_images`
+--
+ALTER TABLE `content_images`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 --
 -- AUTO_INCREMENT for table `content_items`
 --
 ALTER TABLE `content_items`
-  MODIFY `content_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=534;
+  MODIFY `content_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=125;
+--
+-- AUTO_INCREMENT for table `content_responses`
+--
+ALTER TABLE `content_responses`
+  MODIFY `content_response_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 --
 -- AUTO_INCREMENT for table `content_tags`
 --
 ALTER TABLE `content_tags`
   MODIFY `content_tag_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=122;
 --
--- AUTO_INCREMENT for table `events`
---
-ALTER TABLE `events`
-  MODIFY `event_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
---
 -- AUTO_INCREMENT for table `event_bookmarks`
 --
 ALTER TABLE `event_bookmarks`
-  MODIFY `event_bookmark_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `event_bookmark_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
 --
 -- AUTO_INCREMENT for table `event_images`
 --
 ALTER TABLE `event_images`
   MODIFY `event_image_id` int(10) NOT NULL AUTO_INCREMENT;
 --
--- AUTO_INCREMENT for table `event_likes`
---
-ALTER TABLE `event_likes`
-  MODIFY `likes_id` int(10) NOT NULL AUTO_INCREMENT;
---
 -- AUTO_INCREMENT for table `event_rsvps`
 --
 ALTER TABLE `event_rsvps`
-  MODIFY `event_rsvp_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=175;
+  MODIFY `event_rsvp_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=324;
 --
 -- AUTO_INCREMENT for table `event_tags`
 --
 ALTER TABLE `event_tags`
-  MODIFY `event_tag_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `event_tag_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 --
 -- AUTO_INCREMENT for table `event_timings`
 --
@@ -993,7 +737,7 @@ ALTER TABLE `event_views`
 -- AUTO_INCREMENT for table `followers`
 --
 ALTER TABLE `followers`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=301;
 --
 -- AUTO_INCREMENT for table `report_content`
 --
@@ -1008,31 +752,25 @@ ALTER TABLE `report_event`
 -- AUTO_INCREMENT for table `social_accounts`
 --
 ALTER TABLE `social_accounts`
-  MODIFY `social_account_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=336;
+  MODIFY `social_account_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=438;
 --
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `student_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=321;
+  MODIFY `student_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=412;
 --
 -- AUTO_INCREMENT for table `student_interests`
 --
 ALTER TABLE `student_interests`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1316;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1607;
 --
 -- AUTO_INCREMENT for table `student_skills`
 --
 ALTER TABLE `student_skills`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=467;
 --
 -- Constraints for dumped tables
 --
-
---
--- Constraints for table `collegeadmins`
---
-ALTER TABLE `collegeadmins`
-  ADD CONSTRAINT `collegeadmins_ibfk_1` FOREIGN KEY (`username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `contents`
@@ -1062,11 +800,11 @@ ALTER TABLE `content_items`
   ADD CONSTRAINT `content_items_ibfk_1` FOREIGN KEY (`content_id`) REFERENCES `contents` (`content_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `events`
+-- Constraints for table `content_responses`
 --
-ALTER TABLE `events`
-  ADD CONSTRAINT `events_ibfk_1` FOREIGN KEY (`created_by_username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `events_ibfk_2` FOREIGN KEY (`college_id`) REFERENCES `college` (`college_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `content_responses`
+  ADD CONSTRAINT `content_responses_ibfk_1` FOREIGN KEY (`content_id`) REFERENCES `contents` (`content_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `content_responses_ibfk_2` FOREIGN KEY (`username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `event_bookmarks`
@@ -1080,13 +818,6 @@ ALTER TABLE `event_bookmarks`
 --
 ALTER TABLE `event_images`
   ADD CONSTRAINT `event_images_ibfk_1` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `event_likes`
---
-ALTER TABLE `event_likes`
-  ADD CONSTRAINT `event_likes_ibfk_1` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `event_likes_ibfk_2` FOREIGN KEY (`username`) REFERENCES `students` (`username`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `followers`
