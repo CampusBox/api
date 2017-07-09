@@ -64,7 +64,7 @@ class Student extends \Spot\Entity {
 
 	public static function relations(Mapper $mapper, Entity $entity) {
 		return [
-		'College' => $mapper->hasOne($entity, 'App\College', 'college_id'),
+		'College' => $mapper->belongsTo($entity, 'App\College', 'college_id'),
 
 		'Owner' => $mapper->hasMany($entity, 'App\Event', 'created_by_username'),
 		'Skills' => $mapper->hasMany($entity, 'App\StudentSkill', 'username'),

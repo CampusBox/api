@@ -1,11 +1,15 @@
 <?php
+
 use App\Student;
 use App\StudentSkill;
 use App\studentFollow;
 use App\EventTransformer;
+use App\EventMiniTransformer;
 use App\StudentTransformer;
+use App\StudentMiniTransformer;
 use App\StudentFollowTransformer;
 use App\ContentTransformer;
+use App\ContentMiniTransformer;
 
 use Exception\NotFoundException;
 use Exception\ForbiddenException;
@@ -33,20 +37,30 @@ $app->get("/searchStudent/{query}", function($request, $response, $arguments){
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->get("/student/{username}", function ($request, $response, $arguments) {
+$app->get("/student", function ($request, $response, $arguments) {
     
+    $transformer = isset($_GET['transformer']) ? $_GET['transformer'] : "default";
+
     $token = $request->getHeader('authorization');
     $token = substr($token[0], strpos($token[0], " ") + 1); 
     $JWT = $this->get('JwtAuthentication');
     $token = $JWT->decodeToken($JWT->fetchToken($request));
 
-    $test = $token->username;
+    if($token){
+        $test = $token->username;
+    }
+    else{
+        $test = '0';
+    }
+    $username = isset($_GET['username']) ? $_GET['username'] : $test;
+
     /* Load existing student using provided id */
     if (false === $student = $this->spot->mapper("App\Student")->first([
-        "username" => $arguments["username"]
+        "username" => $username
         ])) {
         throw new NotFoundException("Student not found.", 404);
     };
+
     /* If-Modified-Since and If-None-Match request header handling. */
     /* Heads up! Apache removes previously set Last-Modified header */
     /* from 304 Not Modified responses. */
@@ -57,46 +71,54 @@ $app->get("/student/{username}", function ($request, $response, $arguments) {
     /* Serialize the response data. */
     $fractal = new Manager();
     $fractal->setSerializer(new DataArraySerializer);
-    $resource = new Item($student, new StudentTransformer(['username' => $test, 'type' => 'get']));
+    if($transformer === "mini"){
+        $resource = new Item($student, new StudentMiniTransformer(['username' => $test, 'type' => 'get']));
+    }
+    else{
+        $resource = new Item($student, new StudentTransformer(['username' => $test, 'type' => 'get']));
+    }
     $data = $fractal->createData($resource)->toArray();
+    $data['meta']['transformer']= $transformer;
 
     return $response->withStatus(200)
     ->withHeader("Content-Type", "appliaction/json")
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->get("/myProfile", function ($request, $response, $arguments) {
+$app->get("/studentEvents", function ($request, $response, $arguments) {
 
-    /* Load existing student using provided id */
-    if (false === $student = $this->spot->mapper("App\Student")->first([
-        "username" => $this->token->decoded->username
-        ])) {
-        throw new NotFoundException("Student not found.", 404);
-    };
-    /* If-Modified-Since and If-None-Match request header handling. */
-    /* Heads up! Apache removes previously set Last-Modified header */
-    /* from 304 Not Modified responses. */
-    if ($this->cache->isNotModified($request, $response)) {
-        return $response->withStatus(304);
+    $transformer = isset($_GET['transformer']) ? $_GET['transformer'] : "default";
+    $filters = isset($_GET['filters']) ? $_GET['filters'] : "default";
+    $limit = isset($_GET['limit']) ? $_GET['limit'] : 4;
+    $offset = isset($_GET['offset']) ? $_GET['offset'] : 0; 
+    //sort_by can takes price, time_created and many other flags
+    $sort_by = isset($_GET['sortby']) ? $_GET['sortby'] : "time_created";
+    $sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : "DESC";
+    $valid_sorty_by = ["from_time", "price"];
+
+    $exists = in_array($sort_by,$valid_sorty_by);
+    echo $exists;
+    if (!$exists){
+        $sort_by = "time_created";
     }
 
-    /* Serialize the response data. */
-    $fractal = new Manager();
-    $fractal->setSerializer(new DataArraySerializer);
-    $resource = new Item($student, new StudentTransformer);
-    $data = $fractal->createData($resource)->toArray();
+    $token = $request->getHeader('authorization');
+    $token = substr($token[0], strpos($token[0], " ") + 1); 
+    $JWT = $this->get('JwtAuthentication');
+    $token = $JWT->decodeToken($JWT->fetchToken($request));
 
-    return $response->withStatus(200)
-    ->withHeader("Content-Type", "appliaction/json")
-    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
-$app->get("/studentEvents/{username}", function ($request, $response, $arguments) {
+    if($token){
+        $test = $token->username;
+    }
+    else{
+        $test = '0';
+    }
+    $username = isset($_GET['username']) ? $_GET['username'] : $test;
 
     /* Use ETag and date from Event with most recent update. */
     $first = $this->spot->mapper("App\Event")
     ->all()
-    ->where(["created_by_username" => $arguments["username"]])
+    ->where(["created_by_username" => $username])
     ->order(["time_created" => "DESC"])
     ->first();
 
@@ -112,10 +134,13 @@ $app->get("/studentEvents/{username}", function ($request, $response, $arguments
     if ($this->cache->isNotModified($request, $response)) {
         return $response->withStatus(304);
     }
-    $test ="4";
     $events = $this->spot->mapper("App\Event")
     ->all()
-    ->order(["time_created" => "DESC"]);
+    ->where(["created_by_username" => $username])
+    ->limit($limit, $offset)
+    ->order([$sort_by => $sort_order]);
+
+    $offset += $limit;
 
     /* Serialize the response data. */
     $fractal = new Manager();
@@ -123,28 +148,59 @@ $app->get("/studentEvents/{username}", function ($request, $response, $arguments
     if (isset($_GET['include'])) {
         $fractal->parseIncludes($_GET['include']);
     }
-    $resource = new Collection($events, new EventTransformer(['username' => $test]));
+   if($transformer === "mini"){
+        $resource = new Collection($events, new EventMiniTransformer(['username' => $test]));
+    }
+    else{
+        $resource = new Collection($events, new EventTransformer(['username' => $test]));
+    }
     $data = $fractal->createData($resource)->toArray();
+    $data['meta']['offset'] = $offset;
+    $data['meta']['limit'] = $limit;
+    $data['meta']['transformer']= $transformer;
+    $data['meta']['sortby'] = $sort_by;
+    $data['meta']['sortorder'] = $sort_order;
 
     return $response->withStatus(200)
     ->withHeader("Content-Type", "application/json")
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->get("/studentContents/{username}", function ($request, $response, $arguments) {
+$app->get("/studentContents", function ($request, $response, $arguments) {
 
-    /* Check if token has needed scope. */
-    // if (true === $this->token->hasScope(["content.all", "content.list"])) {
-    //     throw new ForbiddenException("Token not allowed to list contents.", 403);
-    // }else{
+    $transformer = isset($_GET['transformer']) ? $_GET['transformer'] : "default";
+    $filters = isset($_GET['filters']) ? $_GET['filters'] : "default";
+    $limit = isset($_GET['limit']) ? $_GET['limit'] : 4;
+    $offset = isset($_GET['offset']) ? $_GET['offset'] : 0; 
+    //sort_by can takes price, time_created and many other flags
+    $sort_by = isset($_GET['sortby']) ? $_GET['sortby'] : "timer";
+    $sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : "DESC";
+    $valid_sorty_by = ["time", "price"];
 
-    // }
+    $exists = in_array($sort_by,$valid_sorty_by);
+    echo $exists;
+    if (!$exists){
+        $sort_by = "timer";
+    }
 
-    //$test = $this->token->decoded->username;
+    $token = $request->getHeader('authorization');
+    $token = substr($token[0], strpos($token[0], " ") + 1); 
+    $JWT = $this->get('JwtAuthentication');
+    $token = $JWT->decodeToken($JWT->fetchToken($request));
+
+    if($token){
+        $test = $token->username;
+    }
+    else{
+        $test = '0';
+    }
+    $username = isset($_GET['username']) ? $_GET['username'] : $test;
+
 
     /* Use ETag and date from Content with most recent update. */
     $first = $this->spot->mapper("App\Content")
     ->all()
+    ->where(["created_by_username" => $username])
     ->order(["timer" => "DESC"])
     ->first();
 
@@ -163,8 +219,11 @@ $app->get("/studentContents/{username}", function ($request, $response, $argumen
 
     $contents = $this->spot->mapper("App\Content")
     ->all()
-    ->where(["created_by_username" => $arguments["username"]])
-    ->order(["timer" => "DESC"]);
+    ->where(["created_by_username" => $username])
+    ->limit($limit, $offset)
+    ->order([$sort_by => $sort_order]);
+
+    $offset += $limit;
 
     /* Serialize the response data. */
     $fractal = new Manager();
@@ -172,19 +231,43 @@ $app->get("/studentContents/{username}", function ($request, $response, $argumen
     if (isset($_GET['include'])) {
         $fractal->parseIncludes($_GET['include']);
     }
-    $resource = new Collection($contents, new ContentTransformer(['username' => $test]));
+    if($transformer === "mini"){
+        $resource = new Collection($contents, new ContentMiniTransformer(['username' => $test]));
+    }
+    else{
+        $resource = new Collection($contents, new ContentTransformer(['username' => $test]));
+    }
     $data = $fractal->createData($resource)->toArray();
+    $data['meta']['offset'] = $offset;
+    $data['meta']['limit'] = $limit;
+    $data['meta']['transformer']= $transformer;
+    $data['meta']['sortby'] = $sort_by;
+    $data['meta']['sortorder'] = $sort_order;
 
     return $response->withStatus(200)
     ->withHeader("Content-Type", "application/json")
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->patch("/students/{username}", function ($request, $response, $arguments) {
+$app->patch("/student", function ($request, $response, $arguments) {
+
+    $transformer = isset($_GET['transformer']) ? $_GET['transformer'] : "default";
+
+    $token = $request->getHeader('authorization');
+    $token = substr($token[0], strpos($token[0], " ") + 1); 
+    $JWT = $this->get('JwtAuthentication');
+    $token = $JWT->decodeToken($JWT->fetchToken($request));
+
+    if($token){
+        $test = $token->username;
+    }
+    else{
+        throw new ForbiddenException("Permission Denied", 403);
+    }
 
     /* Load existing student using provided username */
     if (false === $student = $this->spot->mapper("App\Student")->first([
-        "username" => $arguments["username"]
+        "username" => $test
         ])) {
         throw new NotFoundException("Student not found.", 404);
     };
@@ -195,74 +278,93 @@ $app->patch("/students/{username}", function ($request, $response, $arguments) {
 
     $fractal = new Manager();
     $fractal->setSerializer(new DataArraySerializer);
-    $resource = new Item($student, new StudentTransformer);
+    if($transformer === "mini"){
+       $resource = new Item($student, new StudentMiniTransformer);
+    }
+    else{
+       $resource = new Item($student, new StudentTransformer);    
+    }
     $data = $fractal->createData($resource)->toArray();
     $data["status"] = "ok";
     $data["message"] = "Student updated";
+    $data["meta"]["transformer"]= $transformer;
 
     return $response->withStatus(200)
     ->withHeader("Content-Type", "application/json")
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->post("/about", function ($request, $response, $arguments) {
+$app->post("/studentSkill", function ($request, $response, $arguments) {
 
-  
-    /* Load existing student using provided id */
-    if (false === $student = $this->spot->mapper("App\Student")->first([
-        "username" => $this->token->decoded->username
-        ])) {
-        throw new NotFoundException("Student not found.", 404);
-    };
+    $token = $request->getHeader('authorization');
+    $token = substr($token[0], strpos($token[0], " ") + 1); 
+    $JWT = $this->get('JwtAuthentication');
+    $token = $JWT->decodeToken($JWT->fetchToken($request));
 
-
+    if($token){
+        $test = $token->username;
+    }
+    else{
+        throw new ForbiddenException("Permission Denied", 403);
+    }
+    $skill_count = $this->spot->mapper("App\StudentSkill")->query("SELECT * FROM `student_skills` WHERE username = '". $test ."'");
+    if(count($skill_count)>=5){
+        throw new ForbiddenException("Can add only five skills", 403);
+    }else{
     $body = $request->getParsedBody();
+    $skill_name = $body['skill'];
 
-    /* PUT request assumes full representation. If any of the properties is */
-    /* missing set them to default values by clearing the student object first. */
-    $entity = $this->spot->mapper("App\Student")->first(['username' => $this->token->decoded->username]);
-    if ($entity) {
-        $entity->about = $body;
-        $this->spot->mapper("App\Student")->update($entity);
-    }
-
-    $fractal = new Manager();
-    $fractal->setSerializer(new DataArraySerializer);
-    $resource = new Item($entity, new StudentTransformer);
-    $data = $fractal->createData($resource)->toArray();
-    $data["status"] = "ok";
-    $data["message"] = "Student updated";
-    $data["body"] = $body;
-
-    return $response->withStatus(200)
-    ->withHeader("Content-Type", "application/json")
-    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
-$app->post("/addStudentSkills", function ($request, $response, $arguments) {
-    $body = $request->getParsedBody();
-    $skills['skills'] = $body['skills'];
-    $skills_existing = $this->spot->mapper("App\StudentSkill")
-        ->where(['username' => $this->token->decoded->username]);
-
-   // Deleting existing skills 
-    foreach ($skills_existing as $key ) {
-        $this->spot->mapper("App\StudentSkill")->delete($key);
-    }
-
-   // Adding new skills 
-    foreach ($skills['skills'] as $key ) {
-        
-        $newSkills['skill_name'] = $key['name'];
-        $newSkills['username'] = $this->token->decoded->username;
-
-        $newSkill = new StudentSkill($newSkills);
-        $this->spot->mapper("App\StudentSkill")->save($newSkill);
-    }
+    $newSkill['skill_name'] = $skill_name;
+    $newSkill['username'] = $test;
+    if($skills_existing = $this->spot->mapper("App\StudentSkill")->first(['skill_name' =>    $skill_name, 'username' => $test])){
+        throw new ForbiddenException("Already Added.", 400);  
+    }else{
+    $addSkill = new StudentSkill($newSkill);
+    $this->spot->mapper("App\StudentSkill")->save($addSkill);
+    $data['status'] = "ok";
+    $data['message'] = "Skill Added";
     /* Serialize the response data. */
     return $response->withStatus(201)
     ->withHeader("Content-Type", "application/json")
-    ->write(json_encode("Skills added", JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    }}
+});
+
+$app->delete("/studentSkill/{id}", function ($request, $response, $arguments) {
+
+    $token = $request->getHeader('authorization');
+    $token = substr($token[0], strpos($token[0], " ") + 1); 
+    $JWT = $this->get('JwtAuthentication');
+    $token = $JWT->decodeToken($JWT->fetchToken($request));
+
+    if($token){
+        $test = $token->username;
+    }
+    else{
+        throw new ForbiddenException("Permission Denied", 403);
+    }
+
+    if(false === $deleteSkill = $this->spot->mapper("App\StudentSkill")->first(["id" => $arguments["id"]])){
+        throw new NotFoundException("Had never added it.", 404);
+    }
+    else{
+    $id = $this->spot->mapper("App\StudentSkill")->delete($deleteSkill);
+    }
+
+    if($id){
+        $data["status"] = "ok";
+        $data["message"] = "Skill deleted successfully.";
+        return $response->withStatus(200)
+        ->withHeader("Content-Type", "application/json")
+        ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    }
+    else{
+        $data["status"] = "error";
+        $data["message"] = "Error deleting Skill!";
+        return $response->withStatus(500)
+        ->withHeader("Content-Type", "application/json")
+        ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    }
 });
 
 $app->post("/studentFollow/{username}", function ($request, $response, $arguments) {

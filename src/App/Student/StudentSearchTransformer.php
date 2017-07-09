@@ -60,4 +60,14 @@ class StudentSearchTransformer extends Fractal\TransformerAbstract
 
         return $this->collection($socials, new SocialTransformer);
     }
+  public function includeFollower(Student $student) {
+    $followers = $student->Follower;
+
+    return $this->collection($followers, new StudentMiniTransformer);
+  }
+  public function includeFollowing(Student $student) {
+    $followers = $student->Following;
+
+    return $this->collection($followers, new StudentMiniTransformer);
+  }
 }

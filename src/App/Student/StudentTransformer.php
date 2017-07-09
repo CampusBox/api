@@ -65,12 +65,6 @@ class StudentTransformer extends Fractal\TransformerAbstract
   "subtitle" => (string)$student->about?: null,
   "photo" => (string)$student->image?: null,
 
-  "college" => [
-  "roll_number" => (integer)$student->roll_number?: null,
-  "name" => (string)$student->College['name']?: null,
-  "hostelid" => (integer)$student->hostel_id?: null,
-  "room_number" => (string)$student->room_number?: null,
-  ],
   "contacts" => [
   "email" => (string)$student->email?: null,  
   "phone" => (integer)$student->phone?: null,
@@ -98,6 +92,11 @@ public function includeEvents(Student $student) {
   $events = $student->Owner;
 
   return $this->Collection($events, new EventMiniTransformer);
+}
+public function includeCollege(Student $student) {
+  $college = $student->Owner;
+
+  return $this->Collection($college, new CollegeTransformer);
 }
 public function includeBookmarkedContents(Student $student) {
   $contents = $student->BookmarkedContents;
@@ -134,5 +133,4 @@ public function includeFollowing(Student $student) {
 
     return $this->collection($followers, new StudentMiniTransformer(['username' => $this->params['username'], 'type' => 'get']));
   }
-}
 }
