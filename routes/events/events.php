@@ -93,7 +93,7 @@ $app->get("/events", function ($request, $response, $arguments) {
 });
 
 
-$app->get("/event/{event_id}", function ($request, $response, $arguments) {
+$app->get("/events/{event_id}", function ($request, $response, $arguments) {
 
 	$transformer = isset($_GET['transformer']) ? $_GET['transformer'] : "default";
 
@@ -245,7 +245,7 @@ $app->post("/event", function ($request, $response, $arguments) {
 });
 
 
-$app->patch("/events/{event_id}", function ($request, $response, $arguments) {
+$app->patch("/event/{event_id}", function ($request, $response, $arguments) {
 	
 	$makeStatus = isset($_GET['makestatus']) ? $_GET['makestatus'] : 0;
 	$body = $request->getParsedBody();
@@ -382,15 +382,6 @@ return $response->withStatus(200)
 $app->put("/events/{event_id}", function ($request, $response, $arguments) {
 
 	$makeStatus = isset($_GET['makestatus']) ? $_GET['makestatus'] : 1;
-
-	$token = $request->getHeader('authorization');
-	$token = substr($token[0], strpos($token[0], " ") + 1); 
-	$JWT = $this->get('JwtAuthentication');
-	$token = $JWT->decodeToken($JWT->fetchToken($request));
-
-	if (!$token) {
-		throw new ForbiddenException("Token not found", 401);
-	}
 
 	/* Load existing event using provided id */
 	if (false === $event = $this->spot->mapper("App\Event")->first([

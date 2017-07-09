@@ -37,7 +37,7 @@ $app->get("/searchStudent/{query}", function($request, $response, $arguments){
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->get("/student", function ($request, $response, $arguments) {
+$app->get("/students", function ($request, $response, $arguments) {
     
     $transformer = isset($_GET['transformer']) ? $_GET['transformer'] : "default";
 
@@ -249,6 +249,95 @@ $app->get("/studentContents", function ($request, $response, $arguments) {
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
+$app->get("/userImage", function ($request, $response, $arguments) {
+
+    $username =$this->token->decoded->username;
+
+    $follows = $this->spot->mapper("App\Student")
+        ->query("
+                SELECT name, image
+                FROM students
+                WHERE username = '". $username ."' ");
+        $data['username'] = $this->token->decoded->username;
+        $data['name'] = $follows[0]->name;
+        $data['image'] = $follows[0]->image;
+
+        return $response->withStatus(200)
+        ->withHeader("Content-Type", "application/json")
+        ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+});
+
+$app->post("/studentSkill", function ($request, $response, $arguments) {
+
+    $token = $request->getHeader('authorization');
+    $token = substr($token[0], strpos($token[0], " ") + 1); 
+    $JWT = $this->get('JwtAuthentication');
+    $token = $JWT->decodeToken($JWT->fetchToken($request));
+
+    if($token){
+        $test = $token->username;
+    }
+    else{
+        throw new ForbiddenException("Permission Denied", 403);
+    }
+    $skill_count = $this->spot->mapper("App\StudentSkill")->query("SELECT * FROM `student_skills` WHERE username = '". $test ."'");
+    if(count($skill_count)>=5){
+        throw new ForbiddenException("Can add only five skills", 403);
+    }else{
+    $body = $request->getParsedBody();
+    $skill_name = $body['skill'];
+
+    if($skill_name === null){
+        throw new ForbiddenException("No skill provided", 400);
+        
+    }
+
+    $newSkill['skill_name'] = $skill_name;
+    $newSkill['username'] = $test;
+    if($skills_existing = $this->spot->mapper("App\StudentSkill")->first(['skill_name' =>    $skill_name, 'username' => $test])){
+        throw new ForbiddenException("Already Added.", 400);  
+    }else{
+    $addSkill = new StudentSkill($newSkill);
+    $this->spot->mapper("App\StudentSkill")->save($addSkill);
+    $data['status'] = "ok";
+    $data['message'] = "Skill Added";
+    /* Serialize the response data. */
+    return $response->withStatus(201)
+    ->withHeader("Content-Type", "application/json")
+    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    }}
+});
+
+$app->post("/studentFollow/{username}", function ($request, $response, $arguments) {
+    if($arguments['username']!=$this->token->decoded->username){
+
+        $participants = $this->spot->mapper("App\StudentFollow")->query("SELECT * FROM `followers` WHERE followed_username = '".  $arguments['username'] ."' AND follower_username = '" .$this->token->decoded->username. "'");
+
+        if(count($participants) > 0){
+            $data["status"] = "Already Following";
+        } else {
+            $event['followed_username'] =  $arguments['username'];
+            $event['follower_username'] =  $this->token->decoded->username;
+
+            $newEvent = new StudentFollow($event);
+            $this->spot->mapper("App\StudentFollow")->save($newEvent);
+
+            $fractal = new Manager();
+            $fractal->setSerializer(new DataArraySerializer);
+            $resource = new Item($newEvent, new StudentFollowTransformer);
+            $data = $fractal->createData($resource)->toArray();
+        }
+
+        /* Serialize the response data. */
+        return $response->withStatus(201)
+        ->withHeader("Content-Type", "application/json")
+        ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+    }
+    return $response->withStatus(201)
+    ->withHeader("Content-Type", "application/json")
+    ->write(json_encode("don't be that narsistic", JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+});
+
 $app->patch("/student", function ($request, $response, $arguments) {
 
     $transformer = isset($_GET['transformer']) ? $_GET['transformer'] : "default";
@@ -294,42 +383,6 @@ $app->patch("/student", function ($request, $response, $arguments) {
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->post("/studentSkill", function ($request, $response, $arguments) {
-
-    $token = $request->getHeader('authorization');
-    $token = substr($token[0], strpos($token[0], " ") + 1); 
-    $JWT = $this->get('JwtAuthentication');
-    $token = $JWT->decodeToken($JWT->fetchToken($request));
-
-    if($token){
-        $test = $token->username;
-    }
-    else{
-        throw new ForbiddenException("Permission Denied", 403);
-    }
-    $skill_count = $this->spot->mapper("App\StudentSkill")->query("SELECT * FROM `student_skills` WHERE username = '". $test ."'");
-    if(count($skill_count)>=5){
-        throw new ForbiddenException("Can add only five skills", 403);
-    }else{
-    $body = $request->getParsedBody();
-    $skill_name = $body['skill'];
-
-    $newSkill['skill_name'] = $skill_name;
-    $newSkill['username'] = $test;
-    if($skills_existing = $this->spot->mapper("App\StudentSkill")->first(['skill_name' =>    $skill_name, 'username' => $test])){
-        throw new ForbiddenException("Already Added.", 400);  
-    }else{
-    $addSkill = new StudentSkill($newSkill);
-    $this->spot->mapper("App\StudentSkill")->save($addSkill);
-    $data['status'] = "ok";
-    $data['message'] = "Skill Added";
-    /* Serialize the response data. */
-    return $response->withStatus(201)
-    ->withHeader("Content-Type", "application/json")
-    ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-    }}
-});
-
 $app->delete("/studentSkill/{id}", function ($request, $response, $arguments) {
 
     $token = $request->getHeader('authorization');
@@ -367,36 +420,6 @@ $app->delete("/studentSkill/{id}", function ($request, $response, $arguments) {
     }
 });
 
-$app->post("/studentFollow/{username}", function ($request, $response, $arguments) {
-    if($arguments['username']!=$this->token->decoded->username){
-
-        $participants = $this->spot->mapper("App\StudentFollow")->query("SELECT * FROM `followers` WHERE followed_username = '".  $arguments['username'] ."' AND follower_username = '" .$this->token->decoded->username. "'");
-
-        if(count($participants) > 0){
-            $data["status"] = "Already Following";
-        } else {
-            $event['followed_username'] =  $arguments['username'];
-            $event['follower_username'] =  $this->token->decoded->username;
-
-            $newEvent = new StudentFollow($event);
-            $this->spot->mapper("App\StudentFollow")->save($newEvent);
-
-            $fractal = new Manager();
-            $fractal->setSerializer(new DataArraySerializer);
-            $resource = new Item($newEvent, new StudentFollowTransformer);
-            $data = $fractal->createData($resource)->toArray();
-        }
-
-        /* Serialize the response data. */
-        return $response->withStatus(201)
-        ->withHeader("Content-Type", "application/json")
-        ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-    }
-    return $response->withStatus(201)
-    ->withHeader("Content-Type", "application/json")
-    ->write(json_encode("don't be that narsistic", JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
 $app->delete("/studentFollow/{username}", function ($request, $response, $arguments) {
     $body = $request->getParsedBody();
 
@@ -415,22 +438,4 @@ $app->delete("/studentFollow/{username}", function ($request, $response, $argume
     return $response->withStatus(200)
     ->withHeader("Content-Type", "application/json")
     ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
-$app->get("/userImage", function ($request, $response, $arguments) {
-
-    $username =$this->token->decoded->username;
-
-    $follows = $this->spot->mapper("App\Student")
-        ->query("
-                SELECT name, image
-                FROM students
-                WHERE username = '". $username ."' ");
-        $data['username'] = $this->token->decoded->username;
-        $data['name'] = $follows[0]->name;
-        $data['image'] = $follows[0]->image;
-
-        return $response->withStatus(200)
-        ->withHeader("Content-Type", "application/json")
-        ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
