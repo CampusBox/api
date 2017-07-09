@@ -23,18 +23,17 @@ $app->get("/", function ($request, $response, $arguments) {
 	print "Here be dragons";
 });
 
-require __DIR__ . "/routes/token.php";
-require __DIR__ . "/routes/search.php";
+require __DIR__ . "/old-files-for-reference/token.php";
+require __DIR__ . "/routes/actions/search.php";
 require __DIR__ . "/routes/events/events.php";
 require __DIR__ . "/routes/content/contents.php";
-require __DIR__ . "/routes/reports.php";
 require __DIR__ . "/routes/events/eventActions.php";
 require __DIR__ . "/routes/content/contentActions.php";
-require __DIR__ . "/routes/colleges.php";
-require __DIR__ . "/routes/college_updates.php";
-require __DIR__ . "/routes/skills.php";
-require __DIR__ . "/routes/notifications.php";
-require __DIR__ . "/routes/students.php";
+require __DIR__ . "/routes/colleges/colleges.php";
+require __DIR__ . "/routes/colleges/college_updates.php";
+require __DIR__ . "/routes/student/skills.php";
+require __DIR__ . "/routes/actions/notifications.php";
+require __DIR__ . "/routes/student/students.php";
 require __DIR__ . "/routes/authentication/login.php";
 require __DIR__ . "/routes/authentication/signup.php";
 
