@@ -19,15 +19,18 @@ use League\Fractal\Serializer\DataArraySerializer;
 
 $app->get("/skills", function ($request, $response, $arguments) {
 
+    $username = isset($_GET['username']) ? $_GET['username'] : null;
+
     /* Check if token has needed scope. */
- //   if (true === $this->token->hasScope(["skill.all", "skill.list"])) {
-   //     throw new ForbiddenException("Token not allowed to list skills.", 403);
-   // }else{
-       
-   // }
+    // if (true === $this->token->hasScope(["skill.all", "skill.list"])) {
+    //     throw new ForbiddenException("Token not allowed to list skills.", 403);
+    // }
+    // else{
+    //    
+    // }
 
     /* Use ETag and date from Skill with most recent update. */
-    $first = $this->spot->mapper("App\StudentSkill")
+    $first = $this->spot->mapper("App\Skill")
         ->all()
         ->first();
 
@@ -37,31 +40,24 @@ $app->get("/skills", function ($request, $response, $arguments) {
     if ($this->cache->isNotModified($request, $response)) {
         return $response->withStatus(304);
     }
-
+    if($username)
     $skills = $this->spot->mapper("App\StudentSkill")
+        ->all()
+        ->where(["username" => $username]);
+    else
+    $skills = $this->spot->mapper("App\Skill")
         ->all();
 
     /* Serialize the response data. */
     $fractal = new Manager();
     $fractal->setSerializer(new DataArraySerializer);
+    if($username)
+    $resource = new Collection($skills, new StudentSkillTransformer);
+    else
     $resource = new Collection($skills, new SkillTransformer);
     $data = $fractal->createData($resource)->toArray();
 
     return $response->withStatus(200)
         ->withHeader("Content-Type", "application/json")
-        ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
-$app->get("/skills/{username}", function ($request, $response, $arguments) {
-    $skill = $this->spot->mapper("App\StudentSkill")->where([
-        "username" => $arguments["username"]]);
-    /* Serialize the response data. */
-    $fractal = new Manager();
-    $fractal->setSerializer(new DataArraySerializer);
-    $resource = new Collection($skill, new StudentSkillTransformer);
-    $data = $fractal->createData($resource)->toArray();
-
-    return $response->withStatus(200)
-        ->withHeader("Content-Type", "appliaction/json")
         ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
