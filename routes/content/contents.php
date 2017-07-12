@@ -31,8 +31,22 @@ function startsWith($haystack, $needle)
  */
 $app->get("/contents", function ($request, $response, $arguments) {
 
-	$limit = isset($_GET['limit']) ? $_GET['limit'] : 3;
+	$content_type_id = isset($_GET['type']) ? $_GET['type'] : null;
+	$get = isset($_GET['getfor']) ? $_GET['getfor'] : "deafult";
+	$transformer = isset($_GET['transformer']) ? $_GET['transformer'] : "default";
+	$filters = isset($_GET['filters']) ? $_GET['filters'] : "default";
+	$limit = isset($_GET['limit']) ? $_GET['limit'] : 6;
 	$offset = isset($_GET['offset']) ? $_GET['offset'] : 0;
+	$sort_by = isset($_GET['sortby']) ? $_GET['sortby'] : "timer";
+	$sort_order = isset($_GET['sortorder']) ? $_GET['sortorder'] : "DESC";
+	$valid_sorty_by = ["content_id", "content_type_id", "timer", "random"];
+
+	$exists = in_array($sort_by,$valid_sorty_by);
+	if (!$exists){
+		$sort_by = "time_created";
+	}
+	if ($sort_by === "random")
+		$sort_by = "RAND ()";
 
 	$token = $request->getHeader('authorization');
 	$token = substr($token[0], strpos($token[0], " ") + 1); 
@@ -44,11 +58,27 @@ $app->get("/contents", function ($request, $response, $arguments) {
 	else
 		$test = '0';
 
+	if($get === "top" && isset($content_type_id)){
+		$contents = $this->spot->mapper("App\Content")
+		->all()
+		->where(["content_type_id"=>$content_type_id, "status"=>0])
+    	->limit($limit, $offset)
+		->order(["randomint" => "DESC"]);
+	}
+	elseif($get === "top"){
+		$contents = $this->spot->mapper("App\Content")
+		->all()
+		->where(["status"=>0])
+    	->limit($limit, $offset)
+		->order(["randomint" => "DESC"]);		
+	}
+	else{
 	$contents = $this->spot->mapper("App\Content")
-	->where(["status"=>0])
-	->limit($limit, $offset)
-	->order(["timer" => "DESC"]);
-	
+	->query("SELECT * FROM `contents` "
+		."WHERE status = 0 "
+		."ORDER BY ".$sort_by." ".$sort_order."	" 
+		." LIMIT " . $limit ." OFFSET " . $offset);
+	}
 	$offset += $limit;
 
 	/* Serialize the response data. */
@@ -57,11 +87,56 @@ $app->get("/contents", function ($request, $response, $arguments) {
 	if (isset($_GET['include'])) {
 		$fractal->parseIncludes($_GET['include']);
 	}
+	if ($transformer === "mini"){
+	$resource = new Collection($contents, new ContentMiniTransformer([ 'type' => 'get', 'username' => $test]));
+	}
+	else{	
 	$resource = new Collection($contents, new ContentTransformer([ 'type' => 'get', 'username' => $test]));
+	}
 	$data = $fractal->createData($resource)->toArray();
 	
 	$data['meta']['offset'] = $offset;
 	$data['meta']['limit'] = $limit;
+
+	return $response->withStatus(200)
+	->withHeader("Content-Type", "application/json")
+	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+});
+
+$app->get("/contents/{content_id}", function ($request, $response, $arguments) {
+
+	$transformer = isset($_GET['transformer']) ? $_GET['transformer'] : "default";
+	$token = $request->getHeader('authorization');
+	$token = substr($token[0], strpos($token[0], " ") + 1); 
+	$JWT = $this->get('JwtAuthentication');
+	$token = $JWT->decodeToken($JWT->fetchToken($request));
+
+	if ($token) 
+		$test = $token->username;
+	else
+		$test = '0';
+	/* Load existing content using provided id */
+	if (false === $content = $this->spot->mapper("App\Content")->first([
+	                                                                   "content_id" => $arguments["content_id"], "status" => 0,
+	                                                                   ])) 
+	{
+		throw new NotFoundException("Content not found.", 404);
+	};
+    $contents = $this->spot->mapper("App\Content")
+	->all()
+	->where(["content_id" => $arguments["content_id"],"status" => 0,]);
+
+	/* Serialize the response data. */
+	$fractal = new Manager();
+	$fractal->setSerializer(new DataArraySerializer);
+	if ($transformer === "mini"){
+	$resource = new Collection($contents, new ContentMiniTransformer([ 'type' => 'get', 'username' => $test]));
+	$data = $fractal->createData($resource)->toArray();
+	}
+	else{	
+	$resource = new Collection($contents, new ContentTransformer([ 'type' => 'get', 'username' => $test]));
+	$data = $fractal->createData($resource)->toArray();
+	}
 
 	return $response->withStatus(200)
 	->withHeader("Content-Type", "application/json")
@@ -74,55 +149,7 @@ $app->get("/contents", function ($request, $response, $arguments) {
  * 				offset (optional) - index till which last data is already present in backend
  * 				filters (optional) - Array of content type ids to be filtered against
  */
-$app->post("/contents", function ($request, $response, $arguments) {
-	$body = $request->getParsedBody();
 
-	$limit = isset($body['limit']) ? $body['limit'] : 3;
-	$offset = isset($body['offset']) ? $body['offset'] : 0;
-	$filters = $body['filters'];
-
-	$token = $request->getHeader('authorization');
-	$token = substr($token[0], strpos($token[0], " ") + 1); 
-	$JWT = $this->get('JwtAuthentication');
-	$token = $JWT->decodeToken($JWT->fetchToken($request));
-
-	if ($token) 
-		$test = $token->username;
-	else
-		$test = '0';
-
-	if(count($filters)){
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["content_type_id"=>$filters, "status"=>0])
-		->limit($limit, $offset)
-		->order(["timer" => "DESC"]);
-	}else{
-
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["status"=>0])
-		->limit($limit, $offset)
-		->order(["timer" => "DESC"]);
-	}
-	$offset += $limit;
-
-	/* Serialize the response data. */
-	$fractal = new Manager();
-	$fractal->setSerializer(new DataArraySerializer);
-	if (isset($_GET['include'])) {
-		$fractal->parseIncludes($_GET['include']);
-	}
-	$resource = new Collection($contents, new ContentTransformer([ 'type' => 'get', 'username' => $test]));
-	$data = $fractal->createData($resource)->toArray();
-	
-	$data['meta']['offset'] = $offset;
-	$data['meta']['limit'] = $limit;
-
-	return $response->withStatus(200)
-	->withHeader("Content-Type", "application/json")
-	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
 
 $app->get("/contentSorted", function ($request, $response, $arguments) {
 	$token = $request->getHeader('authorization');
@@ -182,96 +209,6 @@ $app->get("/contentSorted", function ($request, $response, $arguments) {
 	->write(json_encode($content, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->get("/contentsDashboard", function ($request, $response, $arguments) {
-
-	$token = $request->getHeader('authorization');
-	$token = substr($token[0], strpos($token[0], " ") + 1); 
-	$JWT = $this->get('JwtAuthentication');
-	$token = $JWT->decodeToken($JWT->fetchToken($request));
-
-	if ($token) 
-		$test = $token->username;
-	else
-		$test = '0';
-
-	if(isset($arguments['content_type_id'])){
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
-		->order(["randomint" => "DESC"]);
-	}else{
-
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["status"=>0])
-		->limit(6)
-		->order(["randomint" => "DESC"]);
-	}
-
-	/* Serialize the response data. */
-	$fractal = new Manager();
-	$fractal->setSerializer(new DataArraySerializer);
-	if (isset($_GET['include'])) {
-		$fractal->parseIncludes($_GET['include']);
-	}
-	$resource = new Collection($contents, new ContentTransformer([ 'type' => 'get', 'username' => $test]));
-	$data = $fractal->createData($resource)->toArray();
-
-	return $response->withStatus(200)
-	->withHeader("Content-Type", "application/json")
-	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
-$app->post("/contentsList", function ($request, $response, $arguments) {
-	$body = $request->getParsedBody();
-
-	$limit = isset($body['limit']) ? $body['limit'] : 3;
-	$offset = isset($body['offset']) ? $body['offset'] : 0;
-	$filters = $body['filters'];
-
-	$token = $request->getHeader('authorization');
-	$token = substr($token[0], strpos($token[0], " ") + 1); 
-	$JWT = $this->get('JwtAuthentication');
-	$token = $JWT->decodeToken($JWT->fetchToken($request));
-
-	if ($token) 
-		$test = $token->username;
-	else
-		$test = '0';
-
-	if(count($filters)){
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["content_type_id"=>$filters, "status"=>0])
-		->limit($limit, $offset)
-		->order(["timer" => "DESC"]);
-	}else{
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["status"=>0])
-		->limit($limit, $offset)
-		->order(["timer" => "DESC"]);
-	}
-
-	/* Serialize the response data. */
-	$fractal = new Manager();
-	$fractal->setSerializer(new DataArraySerializer);
-	if (isset($_GET['include'])) {
-		$fractal->parseIncludes($_GET['include']);
-	}
-	$resource = new Collection($contents, new ContentMiniTransformer([ 'type' => 'get', 'username' => $test]));
-	$data = $fractal->createData($resource)->toArray();
-
-	$offset+=$limit;
-
-	$data['meta']['offset'] = $offset;
-	$data['meta']['limit'] = $limit;
-
-	return $response->withStatus(200)
-	->withHeader("Content-Type", "application/json")
-	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
 $app->get("/contentsImage/{content_image_id}", function ($request, $response, $arguments) {
 
 	$content = $this->spot->mapper("App\ContentImages")
@@ -310,123 +247,6 @@ $app->get("/contentAppreciates/{content_id}", function ($request, $response, $ar
 	->withHeader("Content-Type", "application/json") 
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT)); 
 }); 
-
-$app->get("/contentsRandom", function ($request, $response, $arguments) {
-
-	$token = $request->getHeader('authorization');
-	$token = substr($token[0], strpos($token[0], " ") + 1); 
-	$JWT = $this->get('JwtAuthentication');
-	$token = $JWT->decodeToken($JWT->fetchToken($request));
-
-	if ($token) 
-		$test = $token->username;
-	else
-		$test = '0';
-
-	
-	$contents = $this->spot->mapper("App\Content")
-	->query("SELECT * from contents WHERE status = 0  ORDER BY RAND() limit 3"); 
-
-	/* Serialize the response data. */
-	$fractal = new Manager();
-	$fractal->setSerializer(new DataArraySerializer);
-	if (isset($_GET['include'])) {
-		$fractal->parseIncludes($_GET['include']);
-	}
-	$resource = new Collection($contents, new ContentTransformer([ 'type' => 'get', 'username' => $test]));
-	$data = $fractal->createData($resource)->toArray();
-
-	return $response->withStatus(200)
-	->withHeader("Content-Type", "application/json")
-	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
-$app->get("/contentsTop[/{content_type_id}]", function ($request, $response, $arguments) {
-
-	$token = $request->getHeader('authorization');
-	$token = substr($token[0], strpos($token[0], " ") + 1); 
-	$JWT = $this->get('JwtAuthentication');
-	$token = $JWT->decodeToken($JWT->fetchToken($request));
-
-	if ($token) 
-		$test = $token->username;
-	else
-		$test = '0';
-
-	/* Use ETag and date from Content with most recent update. */
-	if(isset($arguments['content_type_id'])){
-
-		$first = $this->spot->mapper("App\Content")
-		->all()
-		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
-		->order(["randomint" => "DESC"])
-		->first();
-
-	}else{
-
-		$first = $this->spot->mapper("App\Content")
-		->all()
-		->where(["status"=>0])
-		->order(["randomint" => "DESC"])
-		->first();
-	}
-
-	if(isset($arguments['content_type_id'])){
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["content_type_id"=>$arguments['content_type_id'], "status"=>0])
-		->order(["randomint" => "DESC"]);
-	}else{
-
-		$contents = $this->spot->mapper("App\Content")
-		->all()
-		->where(["status"=>0])
-		->order(["randomint" => "DESC"]);
-	}
-
-	/* Serialize the response data. */
-	$fractal = new Manager();
-	$fractal->setSerializer(new DataArraySerializer);
-	if (isset($_GET['include'])) {
-		$fractal->parseIncludes($_GET['include']);
-	}
-	$resource = new Collection($contents, new ContentTransformer([ 'type' => 'get', 'username' => $test]));
-	$data = $fractal->createData($resource)->toArray();
-
-	return $response->withStatus(200)
-	->withHeader("Content-Type", "application/json")
-	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
-$app->get("/content/{id}", function ($request, $response, $arguments) {
-
-	$token = $request->getHeader('authorization');
-	$token = substr($token[0], strpos($token[0], " ") + 1); 
-	$JWT = $this->get('JwtAuthentication');
-	$token = $JWT->decodeToken($JWT->fetchToken($request));
-
-	if ($token) 
-		$test = $token->username;
-	else
-		$test = '0';
-	/* Load existing content using provided id */
-	if (false === $content = $this->spot->mapper("App\Content")->first([
-	                                                                   "content_id" => $arguments["id"], "status" => 0,
-	                                                                   ])) 
-	{
-		throw new NotFoundException("Content not found.", 404);
-	};
-
-	/* Serialize the response data. */
-	$fractal = new Manager();
-	$fractal->setSerializer(new DataArraySerializer);
-	$resource = new Item($content, new ContentTransformer(['username' => $test, 'type' => 'get']));
-	$data = $fractal->createData($resource)->toArray();
-
-	return $response->withStatus(200)
-	->withHeader("Content-Type", "application/json")
-	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
 
 $app->post("/addContent", function ($request, $response, $arguments) {
 	$body = $request->getParsedBody();
@@ -646,12 +466,15 @@ $app->patch("/content/{id}", function ($request, $response, $arguments) {
 	};
 
 	$body = $request->getParsedBody();
-	$content->data($body);
-	$this->spot->mapper("App\Content")->save($content);
+
+	$updateContent = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["id"]]);
+	if($updateContent){
+
+	}
 
 	$fractal = new Manager();
 	$fractal->setSerializer(new DataArraySerializer);
-	$resource = new Item($content, new ContentTransformer);
+	$resource = new Item($updatetContent, new ContentTransformer);
 	$data = $fractal->createData($resource)->toArray();
 	$data["status"] = "ok";
 	$data["message"] = "Content updated";
@@ -661,7 +484,7 @@ $app->patch("/content/{id}", function ($request, $response, $arguments) {
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
 
-$app->delete("/content/{content_id}", function ($request, $response, $arguments) {
+$app->put("/content/{content_id}", function ($request, $response, $arguments) {
 
 	$token = $request->getHeader('authorization');
 	$token = substr($token[0], strpos($token[0], " ") + 1); 
@@ -671,6 +494,7 @@ $app->delete("/content/{content_id}", function ($request, $response, $arguments)
 	if (!$token) {
 		throw new ForbiddenException("Token not found", 401);
 	}
+	$makeStatus = isset($_GET['makestatus']) ? $_GET['makestatus'] : 1;
 
 	/* Load existing content using provided id */
 	if (false === $content = $this->spot->mapper("App\Content")->first([
@@ -689,11 +513,14 @@ $app->delete("/content/{content_id}", function ($request, $response, $arguments)
 	$update_status = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["content_id"]]);
 
 	if ($update_status) {
-		$update_status->status = 1;
+		$update_status->status = $makeStatus;
 		$this->spot->mapper("App\Content")->update($update_status);
 	}
 	$data["status"] = "ok";
+	if($makeStatus = 1)
 	$data["message"] = "Content removed";
+	else
+	$data["message"] = "Conent moved to drafts";
 
 	return $response->withStatus(200)
 	->withHeader("Content-Type", "application/json")
@@ -739,45 +566,6 @@ $app->post("/newDraftContent", function ($request, $response, $arguments) {
 	$data["status"] = true;
 	$data["message"] = 'Saved to draft Successfully';
 	return $response->withStatus(201)
-	->withHeader("Content-Type", "application/json")
-	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-});
-
-$app->delete("/movetoDraftContent/{content_id}", function ($request, $response, $arguments) {
-
-	$token = $request->getHeader('authorization');
-	$token = substr($token[0], strpos($token[0], " ") + 1); 
-	$JWT = $this->get('JwtAuthentication');
-	$token = $JWT->decodeToken($JWT->fetchToken($request));
-
-	if (!$token) {
-		throw new ForbiddenException("Token not found", 401);
-	}
-
-	/* Load existing content using provided id */
-	if (false === $content = $this->spot->mapper("App\Content")->first([
-	                                                                   "content_id" => $arguments["content_id"],
-	                                                                   ])) {
-		throw new NotFoundException("Content not found.", 404);};
-
-	if ($content->created_by_username != $token->username) {
-		throw new ForbiddenException("Only the owner can move the content to draft", 404);
-	}
-
-	if ($content->status === 2) {
-		throw new ForbiddenException("Content already moved to draft", 404);
-	}
-
-	$update_status = $this->spot->mapper("App\Content")->first(["content_id" => $arguments["content_id"]]);
-
-	if ($update_status) {
-		$update_status->status = 2;
-		$this->spot->mapper("App\Content")->update($update_status);
-	}
-	$data["status"] = "ok";
-	$data["message"] = "Content successfully moved to draft.";
-
-	return $response->withStatus(200)
 	->withHeader("Content-Type", "application/json")
 	->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 });
