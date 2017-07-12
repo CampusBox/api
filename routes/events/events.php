@@ -250,64 +250,11 @@ $app->patch("/event/{event_id}", function ($request, $response, $arguments) {
 	$makeStatus = isset($_GET['makestatus']) ? $_GET['makestatus'] : 0;
 	$body = $request->getParsedBody();
 
-	if($makeStatus = 0) {
-		$event = $this->spot->mapper("App\Event")->first(["event_id" => $arguments["event_id"]]);
-
-
-		$event['college_id'] =  isset($this->token->decoded->college_id)?:0;
-		$event['created_by_username'] =  $this->token->decoded->username;
-		$event['title'] = $body['event']['title'];
-		$event['subtitle'] = $body['event']['subtitle'];
-		$event['image'] = $body['event']['croppedDataUrl'];
-		$event['price'] = $body['event']['price'];
-		$event['description'] = $body['event']['description'];
-	//$event['contactperson1'] = $body['event']['contactperson1'];
-		$event['venue'] = $body['event']['venue'];
-		$event['audience'] = $body['event']['audience'];
-		$event['event_type_id'] = (int)$body['event']['type'];
-		$event['event_category_id'] = isset($body['event']['category']) ? (int)$body['event']['category']:0;
-		$event['link'] = $body['event']['link'];
-		$event['organiser_name'] = $body['event']['organiserName'];
-		$event['organiser_phone'] = (int)$body['event']['organiserPhone'];
-		$event['organiser_link'] = $body['event']['organiserLink'];
-
-		$event['to_date'] = $body['event']['toDate'];
-		$event['to_time'] = $body['event']['toTime'];
-		$event['to_period'] = $body['event']['toPeriod']=="am"?0:1;
-		$event['from_date'] = $body['event']['fromDate'];
-		$event['from_time'] = $body['event']['fromTime'];
-		$event['from_period'] = $body['event']['fromPeriod']=="am"?0:1;
-		$event['city'] = $body['event']['city'];
-		$event['state'] = isset($body['event']['state'])?:null;
-
-		$event['status'] = 0;
-
-		$newEvent = new Event($event);
-		$this->spot->mapper("App\Event")->save($newEvent);
-
-		$fractal = new Manager();
-		$fractal->setSerializer(new DataArraySerializer);
-		$resource = new Item($newEvent, new EventTransformer);
-		$data = $fractal->createData($resource)->toArray();
-
-		for ($i=0; $i < count($body['tags']); $i++) {
-			$tags['event_id'] = $data['data']['id'];
-			$tags['name'] = $body['tags'][$i]['name'];
-			$intrest = new EventTags($tags);
-			$this->spot->mapper("App\EventTags")->save($intrest);
-		}
-
-		$data["status"] = $status;
-		$data["message"] = "Event published updated";
-	}
-
-	if ($makeStatus = 2) {
-
-		// Load existing event using provided id */
-		if (false === $event = $this->spot->mapper("App\Event")->first([
-			"event_id" => $arguments["event_id"],
-			])) {
-			throw new NotFoundException("Event not found.", 404);
+	// Load existing event using provided id */
+	if (false === $event = $this->spot->mapper("App\Event")->first([
+		"event_id" => $arguments["event_id"],
+		])) {
+		throw new NotFoundException("Event not found.", 404);
 	}
 
 	// PATCH requires If-Unmodified-Since or If-Match request header to be present. */
@@ -323,38 +270,36 @@ $app->patch("/event/{event_id}", function ($request, $response, $arguments) {
 
 	$update_event = $this->spot->mapper("App\Event")->first(["event_id" => $arguments["event_id"]]);		
 
-
 	if ($update_event) {
 
-		$update_event->college_id =  isset($this->token->decoded->college_id)?:0;
-		$update_event->created_by_username =  $this->token->decoded->username;
-		$update_event->title = $body['event']['title'];
-		$update_event->subtitle = $body['event']['subtitle'];
-		$update_event->image = $body['event']['croppedDataUrl'];
-		$update_event->price = $body['event']['price'];
-		$update_event->description = $body['event']['description'];
-		//$update_event->contactperson1 = $body['event']['contactperson1'];
-		$update_event->venue = $body['event']['venue'];
-		$update_event->audience = $body['event']['audience'];
-		$update_event->event_type_id = (int)$body['event']['type'];
-		$update_event->event_category_id = isset($body['event']['category']) ? (int)$body['event']['category']:0;
-		$update_event->link = $body['event']['link'];
-		$update_event->organiser_name = $body['event']['organiserName'];
-		$update_event->organiser_phone = (int)$body['event']['organiserPhone'];
-		$update_event->organiser_link = $body['event']['organiserLink'];
+		 $update_event->college_id =  isset($this->token->decoded->college_id)?:0;
+		 $update_event->created_by_username =  $this->token->decoded->username;
+		 $update_event->title = $body['event']['title'];
+		 $update_event->subtitle = $body['event']['subtitle'];
+		 $update_event->image = $body['event']['croppedDataUrl'];
+		 $update_event->price = $body['event']['price'];
+		// $update_event->description = $body['event']['description'];
+		// $update_event->venue = $body['event']['venue'];
+		 $update_event->audience = isset($body['event']['audience'])?:0;
+		 $update_event->event_type_id = (int)$body['event']['type'];
+		 $update_event->event_category_id = isset($body['event']['category']) ? (int)$body['event']['category']:0;
+		 $update_event->link = $body['event']['link'];
+		 $update_event->organiser_name = $body['event']['organiserName'];
+		 $update_event->organiser_phone = (int)$body['event']['organiserPhone'];
+		 $update_event->organiser_link = $body['event']['organiserLink'];
 
-		$update_event->to_date = $body['event']['toDate'];
-		$update_event->to_time = $body['event']['toTime'];
-		$update_event->to_period = $body['event']['toPeriod']=="am"?0:1;
-		$update_event->from_date = $body['event']['fromDate'];
-		$update_event->from_time = $body['event']['fromTime'];
-		$update_event->from_period = $body['event']['fromPeriod']=="am"?0:1;
-		$update_event->city = $body['event']['city'];
-		$update_event->state = isset($body['event']['state'])?:null;
+		 $update_event->to_date = $body['event']['toDate'];
+		 $update_event->to_time = $body['event']['toTime'];
+		 $update_event->to_period = $body['event']['toPeriod']=="am"?0:1;
+		 $update_event->from_date = $body['event']['fromDate'];
+		 $update_event->from_time = $body['event']['fromTime'];
+		 $update_event->from_period = $body['event']['fromPeriod']=="am"?0:1;
+		 $update_event->city = $body['event']['city'];
+		 $update_event->state = isset($body['event']['state'])?:null;
 
-		$update_event->status = 2;
+		$update_event->status = $makeStatus;
 
-		$this->spot->mapper("App\Event")->update($update_event);
+		$id = $this->spot->mapper("App\Event")->update($update_event);
 	}
 
 	$fractal = new Manager();
@@ -362,16 +307,17 @@ $app->patch("/event/{event_id}", function ($request, $response, $arguments) {
 	$resource = new Item($update_event, new EventTransformer);
 	$data = $fractal->createData($resource)->toArray();
 
-	for ($i=0; $i < count($body['tags']); $i++) {
-		$tags['event_id'] = $data['data']['id'];
-		$tags['name'] = $body['tags'][$i]['name'];
-		$intrest = new EventTags($tags);
-		$this->spot->mapper("App\EventTags")->save($intrest);
-	}
+	// for ($i=0; $i < count($body['tags']); $i++) {
+	// 	$tags['event_id'] = $data['data']['id'];
+	// 	$tags['name'] = $body['tags'][$i]['name'];
+	// 	$intrest = new EventTags($tags);
+	// 	$this->spot->mapper("App\EventTags")->save($intrest);
+	// }
 
-	$data["status"] = $status;
-	$data["message"] = "Event draft updated";
-}
+	if($id){
+	$data["status"] = "okay";
+	$data["message"] = "Event updated";}
+	$data["madeStaus"] = $makeStatus;
 
 return $response->withStatus(200)
 ->withHeader("Content-Type", "application/json")

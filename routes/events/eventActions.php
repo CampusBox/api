@@ -152,33 +152,6 @@ $app->post("/rsvpEvent/{event_id}/{state}", function ($request, $response, $argu
       $data["message"] = "RSVP added";
   }
 }
-
-// $body = [
-// "username" => $this->token->decoded->username,
-// "event_id" => $arguments["event_id"],
-// "state" => $state
-// ];
-// $rsvp = new EventRsvp($body);
-
-// if ($item ) {
-//   $data['orig'] = $item->state;
-//   if ($item->state != $state) {
-
-//     $item->state = $state;
-//     $status = $this->spot->mapper("App\EventRsvp")->update($item);
-
-//     $data["message"] = "RSVP updated";
-
-//   }else  {
-//     $data["message"] = "No change";
-//   }
-// } else{
-//   $status = $this->spot->mapper("App\EventRsvp")->save($rsvp);
-
-//   $data["message"] = "RSVP added";
-// }
-
-
 return $response->withStatus(201)
 ->withHeader("Content-Type", "application/json")
 ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
