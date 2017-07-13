@@ -45,7 +45,8 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
         if ($view_type == 1) {
             $items = $content->Items
             ->where(["content_item_type"=>"embed"]);
-            $tempData = ''; 
+            $tempData = '';
+            if(isset($items[0])){
             $data = $items[0]->data;
             if ($data!=null) {
                 $tempData = $items[0]->data;
@@ -57,12 +58,13 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
                 $temp = array(
                           'thumbnail' => $tempData
                           );
-            }      
+            }  } 
         } elseif ($view_type == 2) {
             $items = $content->Items
             ->where(["content_item_type"=>"embed"]);
             $tempData = ''; 
             $overlay = '0'; 
+            if(isset($items[0])){
             $tempData = $items[0]->thumbnail;
             if (in_array($content->content_type_id, [3,8,13,14])){
                 $overlay = "video";
@@ -72,10 +74,11 @@ class ContentMiniTransformer extends Fractal\TransformerAbstract {
             $temp = array(
                           'thumbnail' => $tempData,
                           'overlay' => $overlay,
-                          );
+                          );   }
         } elseif ($view_type == 3) {
             $items = $content->Items
             ->where(["content_item_type"=>"text"]);
+            if(isset($items[0]))
             $temp = array(
                           'text' => $items[0]->data
                           );

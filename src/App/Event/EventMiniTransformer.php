@@ -80,11 +80,11 @@ class EventMiniTransformer extends Fractal\TransformerAbstract {
         "participation_status" => (string) $participation_status,
         "location" => [
         "type" => (bool)$event->loc_type,
-        "data" => (string) $this->params['location_data'] ?: null
+        "data" => (string) isset($this->params['location_data']) ?: null
         ],
         "timings" => [
-        "day" => $this->params['date'] ?: null,
-        "month" => $this->params['month'] ?: null
+        "day" => isset($this->params['date']) ?: null,
+        "month" => isset($this->params['month']) ?: null
         ],
         ];
     }

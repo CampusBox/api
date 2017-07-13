@@ -53,6 +53,9 @@ $app->get("/students", function ($request, $response, $arguments) {
         $test = '0';
     }
     $username = isset($_GET['username']) ? $_GET['username'] : $test;
+    if($username === '0'){
+        throw new NotFoundException("Token not found", 404); 
+    }
 
     /* Load existing student using provided id */
     if (false === $student = $this->spot->mapper("App\Student")->first([
@@ -114,6 +117,9 @@ $app->get("/studentEvents", function ($request, $response, $arguments) {
         $test = '0';
     }
     $username = isset($_GET['username']) ? $_GET['username'] : $test;
+    if($username === '0'){
+        throw new NotFoundException("Token not found", 404); 
+    }
 
     /* Use ETag and date from Event with most recent update. */
     $first = $this->spot->mapper("App\Event")
@@ -195,7 +201,9 @@ $app->get("/studentContents", function ($request, $response, $arguments) {
         $test = '0';
     }
     $username = isset($_GET['username']) ? $_GET['username'] : $test;
-
+    if($username === '0'){
+        throw new NotFoundException("Token not found", 404); 
+    }
 
     /* Use ETag and date from Content with most recent update. */
     $first = $this->spot->mapper("App\Content")
@@ -274,12 +282,7 @@ $app->post("/studentSkill", function ($request, $response, $arguments) {
     $JWT = $this->get('JwtAuthentication');
     $token = $JWT->decodeToken($JWT->fetchToken($request));
 
-    if($token){
-        $test = $token->username;
-    }
-    else{
-        throw new ForbiddenException("Permission Denied", 403);
-    }
+    $test = $token->username;
     $skill_count = $this->spot->mapper("App\StudentSkill")->query("SELECT * FROM `student_skills` WHERE username = '". $test ."'");
     if(count($skill_count)>=5){
         throw new ForbiddenException("Can add only five skills", 403);
@@ -351,7 +354,7 @@ $app->patch("/student", function ($request, $response, $arguments) {
         $test = $token->username;
     }
     else{
-        throw new ForbiddenException("Permission Denied", 403);
+        throw new ForbiddenException("Permission Denied, token not found", 403);
     }
 
     /* Load existing student using provided username */
