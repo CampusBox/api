@@ -127,11 +127,15 @@ public function includeSocialAccounts(Student $student) {
 public function includeFollowing(Student $student) {
   $followers = $student->Following;
 
+if(isset($this->params['username'])){
     return $this->collection($followers, new StudentMiniTransformer(['username' => $this->params['username'], 'type' => 'get']));
+}
   }
   public function includeFollower(Student $student) {
     $followers = $student->Follower;
 
+  if(isset($this->params['username'])){
     return $this->collection($followers, new StudentMiniTransformer(['username' => $this->params['username'], 'type' => 'get']));
+  }
   }
 }

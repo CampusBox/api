@@ -153,6 +153,7 @@ $app->post("/signup", function ($request, $response, $arguments) {
 		$social['social_id'] = $facebookData['id'];
 		$social['type'] = "facebook";
 		$social['token'] = $body['token'];
+				$social['roll_number'] = 1;
 		$social['name'] = isset($facebookData['name'])?$facebookData['name']:" ";
 		$social['email'] = isset($facebookData['email'])? $facebookData['email']:" ";
 		$social['gender'] = isset($facebookData['gender'])?$facebookData['gender']:" ";
