@@ -135,4 +135,3 @@ public function includeFollowing(Student $student) {
     return $this->collection($followers, new StudentMiniTransformer(['username' => $this->params['username'], 'type' => 'get']));
   }
 }
-}

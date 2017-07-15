@@ -453,7 +453,7 @@ $app->post("/addContent", function ($request, $response, $arguments) {
 	$newContent = new Content($content);
 	$mapper = $this->spot->mapper("App\Content");
 	$wasAdded = $mapper->save($newContent);
-	$url = "http://192.178.7.141/public/contentsImage/";
+	$url = "http://192.178.5.20//public/contentsImage/";
 
 	if ($wasAdded) {	
 

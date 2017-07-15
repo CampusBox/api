@@ -26,7 +26,7 @@ $container["HttpBasicAuthentication"] = function ($container) {
         "secure" => false,
 
         "path" => "/any",
-        "relaxed" => ["localhost:3000"],
+        "relaxed" => ["localhost:3000,192.178.5.20:3000"],
         "users" => [
         "test" => "test"
         ]
@@ -44,7 +44,7 @@ $container["JwtAuthentication"] = function ($container) {
         "passthrough" => [],
         "secret" => getenv("JWT_SECRET"),
         "logger" => $container["logger"],
-        "relaxed" => ["192.168.50.52","localhost"],
+        "relaxed" => ["192.168.50.52","localhost","192.178.5.20"],
         "error" => function ($request, $response, $arguments) {
             $data["status"] = "error";
             $data["message"] = $arguments["message"];

@@ -321,11 +321,12 @@ $app->get("/userImage", function ($request, $response, $arguments) {
 
     $follows = $this->spot->mapper("App\Student")
         ->query("
-                SELECT name, image
+                SELECT name, image, about
                 FROM students
                 WHERE username = '". $username ."' ");
         $data['username'] = $this->token->decoded->username;
         $data['name'] = $follows[0]->name;
+        $data['description'] = $follows[0]->about;
         $data['image'] = $follows[0]->image;
 
         return $response->withStatus(200)
