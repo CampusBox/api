@@ -55,6 +55,7 @@
                 GROUP BY event_rsvps.event_id
                 ORDER BY event_rsvps.timer DESC");
 
+        $notification = [];
 
         foreach ($follows as $key) {
 
