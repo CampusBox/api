@@ -47,13 +47,13 @@
                 GROUP BY content_appreciates.content_id
                 ORDER BY content_appreciates.timer DESC");
 
-    $participants = $this->spot->mapper("App\EventRsvp")
-        ->query("SELECT title, event_rsvps.event_id, event_rsvps.timer, COUNT(event_rsvps.event_id) AS x FROM `event_rsvps`
-                LEFT JOIN `events`
-                ON events.event_id = event_rsvps.event_id
-                WHERE created_by_username = '". $username ."'
-                GROUP BY event_rsvps.event_id
-                ORDER BY event_rsvps.timer DESC");
+    // $participants = $this->spot->mapper("App\EventRsvp")
+    //     ->query("SELECT title, event_rsvps.event_id, event_rsvps.timer, COUNT(event_rsvps.event_id) AS x FROM `event_rsvps`
+    //             LEFT JOIN `events`
+    //             ON events.event_id = event_rsvps.event_id
+    //             WHERE created_by_username = '". $username ."'
+    //             GROUP BY event_rsvps.event_id
+    //             ORDER BY event_rsvps.timer DESC");
 
         $notification = [];
 
@@ -76,15 +76,15 @@
 
             $notification[]=$newNotification2; 
         }
-        foreach ($participants as $key) {
-            $newNotification3['type'] = "event_rsvps"; 
-            $newNotification3['event_id'] = $key->event_id;
-            $newNotification3['title'] = $key->title;
-            $newNotification3['timer'] = $key->timer;                                     
-            $newNotification3['total'] = $key->x; 
+        // foreach ($participants as $key) {
+        //     $newNotification3['type'] = "event_rsvps"; 
+        //     $newNotification3['event_id'] = $key->event_id;
+        //     $newNotification3['title'] = $key->title;
+        //     $newNotification3['timer'] = $key->timer;                                     
+        //     $newNotification3['total'] = $key->x; 
 
-            $notification[]=$newNotification3; 
-        }
+        //     $notification[]=$newNotification3; 
+        // }
 
     return $response->withStatus(200)
     ->withHeader("Content-Type", "application/json")
